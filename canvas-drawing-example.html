@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas绘制复杂结构图示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        #canvas-container {
+            display: inline-block;
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        canvas {
+            display: block;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .info {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Canvas绘制复杂结构图示例</h1>
+    <div id="canvas-container">
+        <canvas id="drawingCanvas" width="1000" height="1200"></canvas>
+    </div>
+    <div class="controls">
+        <button onclick="redraw()">重绘</button>
+        <button onclick="saveImage()">保存图片</button>
+    </div>
+    <div class="info">
+        本示例使用Canvas API绘制复杂的层次化结构图，包含几何图形、文字标注和连接线
+    </div>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 绘制主函数
+        function draw() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 设置全局样式
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+            
+            // 绘制顶部标题
+            drawTitle();
+            
+            // 绘制底部的层级结构
+            drawBottomLayers();
+            
+            // 绘制须弥山
+            drawMountSumeru();
+            
+            // 绘制诸天
+            drawHeavens();
+            
+            // 绘制标注文字
+            drawLabels();
+            
+            // 绘制连接线
+            drawConnections();
+            
+            // 绘制装饰元素
+            drawDecorations();
+            
+            // 绘制须弥山内部结构
+            drawMountSumeruDetails();
+        }
+
+        // 绘制标题
+        function drawTitle() {
+            ctx.font = '16px Arial bold';
+            ctx.fillText('小世界诸天图解', canvas.width / 2, 30);
+            ctx.font = '12px Arial';
+            ctx.fillText('寿二大劫至八大劫 有更大的毁减轮回过程，故曰：三界有生死轮回。', canvas.width / 2, 50);
+        }
+
+        // 绘制底部的风轮、水轮、金轮、地轮
+        function drawBottomLayers() {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height - 100;
+            
+            // 风轮
+            ctx.beginPath();
+            ctx.arc(centerX, baseY, 380, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillText('风轮（高一由旬）', centerX - 100, baseY + 410);
+            
+            // 水轮
+            ctx.beginPath();
+            ctx.arc(centerX, baseY, 330, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillText('水轮（高八十万由旬，广120万3,450万由旬）', centerX - 150, baseY + 360);
+            
+            // 金轮
+            ctx.beginPath();
+            ctx.arc(centerX, baseY, 280, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillText('金轮（高三十二万由旬，广同水轮）', centerX - 120, baseY + 310);
+            
+            // 地轮
+            ctx.beginPath();
+            ctx.arc(centerX, baseY, 230, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillText('地轮（深六十八千由旬）', centerX - 80, baseY + 260);
+            
+            // 持地山
+            ctx.beginPath();
+            ctx.arc(centerX, baseY, 200, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillText('⑦持地山', centerX - 150, baseY - 210);
+        }
+
+        // 绘制须弥山主体
+        function drawMountSumeru() {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height - 100;
+            
+            // 须弥山主体轮廓
+            ctx.beginPath();
+            ctx.moveTo(centerX - 100, baseY - 230);
+            ctx.lineTo(centerX - 120, baseY - 350);
+            ctx.lineTo(centerX - 110, baseY - 500);
+            ctx.lineTo(centerX - 100, baseY - 600);
+            ctx.lineTo(centerX - 90, baseY - 700);
+            ctx.lineTo(centerX - 80, baseY - 750);
+            ctx.lineTo(centerX + 80, baseY - 750);
+            ctx.lineTo(centerX + 90, baseY - 700);
+            ctx.lineTo(centerX + 100, baseY - 600);
+            ctx.lineTo(centerX + 110, baseY - 500);
+            ctx.lineTo(centerX + 120, baseY - 350);
+            ctx.lineTo(centerX + 100, baseY - 230);
+            ctx.closePath();
+            ctx.stroke();
+            
+            // 须弥山标注
+            ctx.fillText('须弥山（高度出水84,000由旬）', centerX - 120, baseY - 780);
+            
+            // 七重金山
+            for (let i = 0; i < 7; i++) {
+                const radius = 230 + i * 25;
+                ctx.beginPath();
+                ctx.arc(centerX, baseY, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.fillText('七重金山', centerX - 40, baseY - 200);
+            
+            // 香水海
+            ctx.beginPath();
+            ctx.arc(centerX, baseY, 180, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillText('香水海', centerX + 300, baseY - 150);
+        }
+
+        // 绘制须弥山内部结构
+        function drawMountSumeruDetails() {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height - 100;
+            
+            // 须弥山内部层次
+            ctx.beginPath();
+            ctx.moveTo(centerX - 70, baseY - 230);
+            ctx.lineTo(centerX - 80, baseY - 350);
+            ctx.lineTo(centerX - 75, baseY - 500);
+            ctx.lineTo(centerX - 70, baseY - 600);
+            ctx.lineTo(centerX - 65, baseY - 700);
+            ctx.lineTo(centerX - 60, baseY - 750);
+            ctx.lineTo(centerX + 60, baseY - 750);
+            ctx.lineTo(centerX + 65, baseY - 700);
+            ctx.lineTo(centerX + 70, baseY - 600);
+            ctx.lineTo(centerX + 75, baseY - 500);
+            ctx.lineTo(centerX + 80, baseY - 350);
+            ctx.lineTo(centerX + 70, baseY - 230);
+            ctx.closePath();
+            ctx.stroke();
+            
+            // 须弥山内部标注
+            ctx.fillText('须弥山', centerX, baseY - 450);
+            ctx.fillText('四天王天', centerX - 180, baseY - 650);
+            ctx.fillText('四天王天', centerX + 180, baseY - 650);
+        }
+
+        // 绘制诸天
+        function drawHeavens() {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height - 100;
+            
+            // 四天王天
+            ctx.beginPath();
+            ctx.rect(centerX - 180, baseY - 750, 360, 60);
+            ctx.stroke();
+            ctx.fillText('四天王天 寿500岁 人间50年/1日（欲界第一天）', centerX - 20, baseY - 720);
+            
+            // 忉利天
+            ctx.beginPath();
+            ctx.rect(centerX - 200, baseY - 820, 400, 60);
+            ctx.stroke();
+            ctx.fillText('忉利天 寿1,000岁 人间100年/1日（欲界第二天）', centerX - 20, baseY - 790);
+            
+            // 夜摩天
+            ctx.beginPath();
+            ctx.rect(centerX - 180, baseY - 880, 360, 50);
+            ctx.stroke();
+            ctx.fillText('夜摩天 寿2,000岁 人间200年/1日（欲界第三天）', centerX - 20, baseY - 855);
+            
+            // 兜率天
+            ctx.beginPath();
+            ctx.rect(centerX - 160, baseY - 930, 320, 45);
+            ctx.stroke();
+            ctx.fillText('兜率天 寿4,000岁 人间400年/1日', centerX - 20, baseY - 908);
+            
+            // 化乐天
+            ctx.beginPath();
+            ctx.rect(centerX - 140, baseY - 975, 280, 40);
+            ctx.stroke();
+            ctx.fillText('化乐天 寿8,000岁 人间800年/1日', centerX - 20, baseY - 955);
+            
+            // 他化自在天
+            ctx.beginPath();
+            ctx.rect(centerX - 120, baseY - 1015, 240, 35);
+            ctx.stroke();
+            ctx.fillText('他化自在天 寿16,000岁 人间1,600年/1日', centerX - 20, baseY - 998);
+            
+            // 色界诸天
+            ctx.font = '14px Arial bold';
+            ctx.fillText('色界十八天', centerX - 300, 150);
+            ctx.font = '12px Arial';
+            
+            // 初禅三天
+            ctx.fillText('初禅三天', centerX - 300, 180);
+            ctx.fillText('梵众天 寿20小劫', centerX - 300, 200);
+            ctx.fillText('梵辅天 寿40小劫', centerX - 300, 220);
+            ctx.fillText('大梵天 寿60小劫', centerX - 300, 240);
+            
+            // 二禅三天
+            ctx.fillText('二禅三天', centerX - 300, 270);
+            ctx.fillText('少光天 寿2大劫', centerX - 300, 290);
+            ctx.fillText('无量光天 寿4大劫', centerX - 300, 310);
+            ctx.fillText('光音天 寿6大劫', centerX - 300, 330);
+            
+            // 三禅三天
+            ctx.fillText('三禅三天', centerX - 300, 360);
+            ctx.fillText('少净天 寿16大劫', centerX - 300, 380);
+            ctx.fillText('无量净天 寿32大劫', centerX - 300, 400);
+            ctx.fillText('遍净天 寿64大劫', centerX - 300, 420);
+            
+            // 四禅九天
+            ctx.fillText('四禅九天', centerX - 300, 450);
+            ctx.fillText('福生天 寿125大劫至一万六千大劫', centerX - 300, 470);
+            
+            // 无色界四天
+            ctx.font = '14px Arial bold';
+            ctx.fillText('无色界四天', centerX + 300, 150);
+            ctx.font = '12px Arial';
+            ctx.fillText('空无边处天', centerX + 300, 180);
+            ctx.fillText('识无边处天', centerX + 300, 200);
+            ctx.fillText('无所有处天', centerX + 300, 220);
+            ctx.fillText('非想非非想处天', centerX + 300, 240);
+        }
+
+        // 绘制标注文字
+        function drawLabels() {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height - 100;
+            
+            // 设置文字样式
+            ctx.font = '12px Arial';
+            
+            // 底部标注
+            ctx.fillText('下方', centerX, baseY + 450);
+            ctx.fillText('虚空', centerX, baseY - 1080);
+            
+            // 须弥山周围标注
+            ctx.fillText('东胜神洲', centerX - 300, baseY - 150);
+            ctx.fillText('南赡部洲', centerX, baseY - 30);
+            ctx.fillText('西牛贺洲', centerX + 300, baseY - 150);
+            ctx.fillText('北俱芦洲', centerX, baseY - 280);
+            
+            // 日月经纬
+            ctx.fillText('日', centerX - 250, baseY - 450);
+            ctx.fillText('月', centerX + 250, baseY - 450);
+            ctx.fillText('日月星宿天', centerX - 250, baseY - 420);
+            ctx.fillText('日月星宿天', centerX + 250, baseY - 420);
+            
+            // 其他标注
+            ctx.fillText('须弥陀山周围标注', centerX, baseY - 100);
+            ctx.fillText('以须弥山为中心是为一小世界，此为佛智观所见说，今人测量而知。', centerX, canvas.height - 20);
+        }
+
+        // 绘制连接线
+        function drawConnections() {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height - 100;
+            
+            // 从标注到对应位置的连接线
+            ctx.beginPath();
+            ctx.moveTo(centerX - 300, baseY - 150);
+            ctx.lineTo(centerX - 220, baseY - 180);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX + 300, baseY - 150);
+            ctx.lineTo(centerX + 220, baseY - 180);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, baseY - 30);
+            ctx.lineTo(centerX, baseY - 180);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, baseY - 280);
+            ctx.lineTo(centerX, baseY - 220);
+            ctx.stroke();
+            
+            // 诸天连接线
+            ctx.beginPath();
+            ctx.moveTo(centerX - 300, 80);
+            ctx.lineTo(centerX, 80);
+            ctx.lineTo(centerX, 120);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX + 300, 80);
+            ctx.lineTo(centerX, 80);
+            ctx.lineTo(centerX, 120);
+            ctx.stroke();
+        }
+
+        // 绘制装饰元素
+        function drawDecorations() {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height - 100;
+            
+            // 绘制星辰
+            drawStars(centerX - 350, baseY - 450, 8);
+            drawStars(centerX + 350, baseY - 450, 8);
+            drawStars(centerX - 400, baseY - 600, 6);
+            drawStars(centerX + 400, baseY - 600, 6);
+            
+            // 绘制云纹装饰
+            drawCloud(centerX - 250, baseY - 300);
+            drawCloud(centerX + 250, baseY - 300);
+            drawCloud(centerX - 300, baseY - 500);
+            drawCloud(centerX + 300, baseY - 500);
+            
+            // 绘制须弥山周围的波浪线
+            drawWaves(centerX, baseY, 150, 8);
+            
+            // 绘制山顶装饰
+            drawMountainTop(centerX, baseY - 750);
+        }
+
+        // 绘制星辰
+        function drawStars(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                const starX = x + Math.random() * 100 - 50;
+                const starY = y + Math.random() * 100 - 50;
+                
+                // 绘制五角星
+                ctx.beginPath();
+                for (let j = 0; j < 5; j++) {
+                    const angle = (j * Math.PI * 2) / 5 - Math.PI / 2;
+                    const radius = j % 2 === 0 ? 3 : 1.5;
+                    const px = starX + Math.cos(angle) * radius;
+                    const py = starY + Math.sin(angle) * radius;
+                    if (j === 0) {
+                        ctx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+
+        // 绘制云纹
+        function drawCloud(x, y) {
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
+            ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
+            ctx.arc(x + 35, y - 15, 15, 0, Math.PI * 2);
+            ctx.arc(x + 15, y - 15, 15, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // 绘制波浪线
+        function drawWaves(x, y, radius, count) {
+            for (let i = 0; i < count; i++) {
+                const waveRadius = radius + i * 15;
+                ctx.beginPath();
+                for (let j = 0; j < 360; j += 10) {
+                    const angle = (j * Math.PI) / 180;
+                    const waveX = x + Math.cos(angle) * waveRadius;
+                    const waveY = y + Math.sin(angle) * waveRadius + Math.sin(j * 3) * 2;
+                    if (j === 0) {
+                        ctx.moveTo(waveX, waveY);
+                    } else {
+                        ctx.lineTo(waveX, waveY);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+            }
+        }
+
+        // 绘制山顶装饰
+        function drawMountainTop(x, y) {
+            ctx.beginPath();
+            ctx.moveTo(x - 30, y);
+            ctx.lineTo(x, y - 40);
+            ctx.lineTo(x + 30, y);
+            ctx.closePath();
+            ctx.stroke();
+            
+            // 山顶建筑
+            ctx.beginPath();
+            ctx.rect(x - 15, y - 40, 30, 20);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x - 20, y - 40);
+            ctx.lineTo(x, y - 55);
+            ctx.lineTo(x + 20, y - 40);
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        // 重绘函数
+        function redraw() {
+            draw();
+        }
+
+        // 保存图片
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = '小世界诸天图解.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // 页面加载时绘制
+        window.onload = draw;
+    </script>
+</body>
+</html>

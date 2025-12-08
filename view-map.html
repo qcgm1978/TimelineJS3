@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看地图 - India.jpeg</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .map-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>查看地图 - India.jpeg</h1>
+        
+        <div class="map-container">
+            <img src="doc/India.jpeg" alt="印度地图">
+        </div>
+        
+        <div class="info">
+            <h3>地图信息</h3>
+            <p><strong>文件名：</strong>India.jpeg</p>
+            <p><strong>文件路径：</strong>doc/India.jpeg</p>
+            <p><strong>在 TimelineJS3 中使用：</strong>可以通过 media.url 设置为 "doc/India.jpeg" 来在时间线中显示此地图</p>
+            <p><strong>访问链接：</strong><a href="http://localhost:8000/doc/India.jpeg" target="_blank">http://localhost:8000/doc/India.jpeg</a></p>
+        </div>
+        
+        <a href="http://localhost:8000/map-visualization-example.html" class="back-link">返回地图可视化示例</a>
+    </div>
+</body>
+</html>

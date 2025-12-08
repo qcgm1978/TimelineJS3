@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国历史地理分区立体地形图</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .map-section {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 25px;
+        }
+        #interactive-map {
+            height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        button.active {
+            background-color: #e74c3c;
+        }
+        .legend {
+            background-color: white;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .legend h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .legend-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 4px;
+            margin-right: 12px;
+            opacity: 0.85;
+            border: 2px solid rgba(0,0,0,0.2);
+        }
+        .legend-desc {
+            display: flex;
+            flex-direction: column;
+        }
+        .legend-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .legend-subtitle {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .region-label {
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .region-label div {
+            text-align: center;
+            line-height: 1;
+        }
+        .map-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+        }
+        .map-info h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        .map-info p {
+            margin: 0 0 10px 0;
+            line-height: 1.7;
+        }
+        .map-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .map-info li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        .info-popup {
+            max-width: 300px;
+        }
+        .info-popup h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .info-popup h4 {
+            margin: 12px 0 6px 0;
+            color: #34495e;
+            font-size: 1em;
+        }
+        .info-popup p {
+            margin: 0 0 8px 0;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>中国历史地理分区立体地形图</h1>
+        <p class="subtitle">地理环境与历史发展的空间关系可视化</p>
+
+        <div class="map-section">
+            <div id="interactive-map"></div>
+            
+            <div class="controls">
+                <button onclick="toggleLayer('natural')" class="active">自然地理单元</button>
+                <button onclick="toggleLayer('historical')" class="active">历史文化区域</button>
+                <button onclick="toggleLayer('passage')" class="active">地理通道</button>
+                <button onclick="zoomIn()">放大</button>
+                <button onclick="zoomOut()">缩小</button>
+                <button onclick="centerMap()">居中</button>
+                <button onclick="changeMapType()">切换地图类型</button>
+            </div>
+
+            <div class="legend">
+                <h3>地图图例说明</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(46, 204, 113, 0.6);"></div>
+                    <div class="legend-desc">
+                        <div class="legend-title">自然地理单元</div>
+                        <div class="legend-subtitle">绿色区域 | 点击查看详情</div>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(52, 152, 219, 0.6);"></div>
+                    <div class="legend-desc">
+                        <div class="legend-title">历史文化区域</div>
+                        <div class="legend-subtitle">蓝色区域 | 点击查看详情</div>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(231, 76, 60, 0.8); background-image: linear-gradient(45deg, #c0392b 25%, transparent 25%, transparent 50%, #c0392b 50%, #c0392b 75%, transparent 75%, transparent); background-size: 10px 10px;"></div>
+                    <div class="legend-desc">
+                        <div class="legend-title">关键地理通道</div>
+                        <div class="legend-subtitle">红色虚线 | 点击查看详情</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-info">
+                <h3>地图说明</h3>
+                <p>这张地图将地理地形与历史区域结合，清晰展现了中国地理环境对历史发展、区域文化形成的影响。</p>
+                <h4>核心功能：</h4>
+                <ul>
+                    <li>使用立体地形图层展示中国地理地貌</li>
+                    <li>标注自然地理单元、历史文化区域和关键地理通道</li>
+                    <li>点击区域查看详细的历史文化意义</li>
+                    <li>可切换显示不同类型的区域</li>
+                    <li>支持缩放、平移等交互操作</li>
+                </ul>
+                <h4>主要区域：</h4>
+                <ul>
+                    <li><strong>自然地理单元</strong>：蒙古高原、东北平原、青藏高原、云贵高原等</li>
+                    <li><strong>历史文化区域</strong>：西域、河西走廊、关中、巴蜀、中原、江南等</li>
+                    <li><strong>地理通道</strong>：河西走廊等</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let currentMapType = 1;
+        let naturalLayer = L.layerGroup();
+        let historicalLayer = L.layerGroup();
+        let passageLayer = L.layerGroup();
+        
+        const mapTypes = [
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }),
+            L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { 
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            }),
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { 
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            })
+        ];
+
+        const naturalRegions = [
+            {
+                name: '蒙古高原',
+                coordinates: [[43.6109, 108.2500], [48.1112, 112.2103], [46.6857, 117.7572], [42.6857, 114.7572], [43.6109, 108.2500]],
+                description: '亚洲中部内陆高原，是中国重要的草原牧区和生态屏障。'
+            },
+            {
+                name: '东北平原',
+                coordinates: [[43.8350, 122.4148], [47.4148, 125.4148], [46.4148, 130.4148], [41.4148, 127.4148], [43.8350, 122.4148]],
+                description: '中国最大的平原，土壤肥沃，是重要的粮食生产基地。'
+            },
+            {
+                name: '青藏高原',
+                coordinates: [[30.5728, 88.6109], [35.5728, 92.6109], [33.5728, 100.6109], [27.5728, 98.6109], [30.5728, 88.6109]],
+                description: '世界屋脊，平均海拔4000米以上，是长江、黄河等大江大河的发源地。'
+            },
+            {
+                name: '云贵高原',
+                coordinates: [[24.8864, 102.8864], [28.8864, 106.8864], [25.8864, 110.8864], [22.8864, 108.8864], [24.8864, 102.8864]],
+                description: '地形崎岖，喀斯特地貌发育，生物多样性丰富。'
+            }
+        ];
+
+        const historicalRegions = [
+            {
+                name: '西域',
+                coordinates: [[41.8056, 85.8056], [43.8056, 90.8056], [40.8056, 95.8056], [38.8056, 92.8056], [41.8056, 85.8056]],
+                description: '今新疆地区，古代丝绸之路的重要组成部分，是中原与中亚交流的重要通道。',
+                history: '西域三十六国曾在此繁衍生息，西汉时纳入中国版图，设立西域都护府。'
+            },
+            {
+                name: '河西走廊',
+                coordinates: [[37.8056, 94.8056], [39.8056, 98.8056], [36.8056, 102.8056], [34.8056, 98.8056], [37.8056, 94.8056]],
+                description: '连接中原与西域的咽喉要道，古代丝绸之路的关键路段。',
+                history: '汉武帝时期打通河西走廊，设立武威、张掖、酒泉、敦煌四郡，成为中原与西域交流的枢纽。'
+            },
+            {
+                name: '关中',
+                coordinates: [[34.2658, 107.2658], [36.2658, 109.2658], [34.2658, 111.2658], [33.2658, 109.2658], [34.2658, 107.2658]],
+                description: '今陕西中部，渭河平原，古代多个王朝的建都之地。',
+                history: '周、秦、汉、唐等王朝均在此建都，是中国古代政治、经济、文化中心之一。'
+            },
+            {
+                name: '巴蜀',
+                coordinates: [[28.5728, 102.5728], [32.5728, 106.5728], [30.5728, 108.5728], [27.5728, 105.5728], [28.5728, 102.5728]],
+                description: '今四川盆地，依托都江堰水利工程，成为历史上的"天府之国"。',
+                history: '诸葛亮曾称其为"沃野千里，天府之土"，是重要的农业与战略区域。'
+            },
+            {
+                name: '中原',
+                coordinates: [[34.7466, 112.7466], [36.7466, 114.7466], [34.7466, 116.7466], [32.7466, 114.7466], [34.7466, 112.7466]],
+                description: '今河南一带，华夏文明的核心发源地之一。',
+                history: '长期作为古代王朝的政治、经济中心，是"逐鹿中原"的战略要地。'
+            },
+            {
+                name: '江南',
+                coordinates: [[29.2304, 118.2304], [32.2304, 120.2304], [30.2304, 122.2304], [27.2304, 120.2304], [29.2304, 118.2304]],
+                description: '今长江中下游地区，自唐宋后逐渐发展为经济重心。',
+                history: '宋代时"苏湖熟，天下足"，明清时期成为中国经济最发达的地区，兼具农业、商业与文化优势。'
+            }
+        ];
+
+        const passages = [
+            {
+                name: '河西走廊',
+                coordinates: [[38.0, 95.0], [39.0, 99.0], [37.0, 102.0], [35.0, 99.0], [38.0, 95.0]],
+                description: '连接中原与西域的关键通道，是古代丝绸之路的咽喉要道。',
+                history: '汉武帝时期打通，成为中原王朝控制西域的战略要地，促进了东西方文化交流。'
+            }
+        ];
+
+        function initMap() {
+            map = L.map('interactive-map').setView([35.8617, 104.1954], 4);
+            
+            // 添加瓦片加载错误监听
+            mapTypes.forEach((layer, index) => {
+                layer.on('tileerror', function(error) {
+                    console.error(`瓦片图层 ${index} 加载错误:`, error);
+                });
+            });
+            
+            mapTypes[currentMapType].addTo(map);
+            
+            addNaturalRegions();
+            addHistoricalRegions();
+            addPassages();
+            
+            naturalLayer.addTo(map);
+            historicalLayer.addTo(map);
+            passageLayer.addTo(map);
+            
+            console.log('地图初始化完成，当前图层:', currentMapType);
+        }
+
+        function addNaturalRegions() {
+            naturalRegions.forEach(region => {
+                const polygon = L.polygon(region.coordinates, {
+                    color: '#27ae60',
+                    fillColor: '#2ecc71',
+                    fillOpacity: 0.7,
+                    weight: 3,
+                    opacity: 0.9,
+                    dashArray: '',
+                    smoothFactor: 1
+                }).addTo(naturalLayer);
+                
+                polygon.bindPopup(`
+                    <div class="info-popup">
+                        <h3>${region.name}</h3>
+                        <h4>自然地理单元</h4>
+                        <p>${region.description}</p>
+                    </div>
+                `);
+                
+                // 添加区域名称标签
+                const polygonLatLngs = region.coordinates.map(coord => L.latLng(coord));
+                const bounds = L.latLngBounds(polygonLatLngs);
+                const center = bounds.getCenter();
+                
+                // 确保中心点在多边形内部
+                if (!L.polygon(polygonLatLngs).getBounds().contains(center)) {
+                    // 如果中心点不在多边形内，尝试使用其他方法获取内部点
+                    const points = region.coordinates;
+                    // 使用第一个点作为备选
+                    center.lat = points[0][0];
+                    center.lng = points[0][1];
+                }
+                
+                L.marker(center, {
+                    icon: L.divIcon({
+                        className: 'region-label',
+                        html: `<div style="font-weight: bold; color: #000; font-size: 16px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-shadow: 0 1px 3px rgba(255,255,255,0.8);">${region.name}</div>`,
+                        iconSize: [0, 0],
+                        iconAnchor: [0, 0]
+                    })
+                }).addTo(naturalLayer);
+                
+                // 添加悬停效果
+                polygon.on('mouseover', function (e) {
+                    this.setStyle({
+                        fillOpacity: 0.9,
+                        weight: 4,
+                        color: '#229954'
+                    });
+                    this.bringToFront();
+                });
+                
+                polygon.on('mouseout', function (e) {
+                    this.setStyle({
+                        fillOpacity: 0.7,
+                        weight: 3,
+                        color: '#27ae60'
+                    });
+                });
+            });
+        }
+
+        function addHistoricalRegions() {
+            historicalRegions.forEach(region => {
+                const polygon = L.polygon(region.coordinates, {
+                    color: '#2980b9',
+                    fillColor: '#3498db',
+                    fillOpacity: 0.7,
+                    weight: 3,
+                    opacity: 0.9,
+                    dashArray: '',
+                    smoothFactor: 1
+                }).addTo(historicalLayer);
+                
+                polygon.bindPopup(`
+                    <div class="info-popup">
+                        <h3>${region.name}</h3>
+                        <h4>历史文化区域</h4>
+                        <p>${region.description}</p>
+                        <h4>历史意义</h4>
+                        <p>${region.history}</p>
+                    </div>
+                `);
+                
+                // 添加区域名称标签
+                const polygonLatLngs = region.coordinates.map(coord => L.latLng(coord));
+                const bounds = L.latLngBounds(polygonLatLngs);
+                const center = bounds.getCenter();
+                
+                // 确保中心点在多边形内部
+                if (!L.polygon(polygonLatLngs).getBounds().contains(center)) {
+                    // 如果中心点不在多边形内，尝试使用其他方法获取内部点
+                    const points = region.coordinates;
+                    // 使用第一个点作为备选
+                    center.lat = points[0][0];
+                    center.lng = points[0][1];
+                }
+                
+                L.marker(center, {
+                    icon: L.divIcon({
+                        className: 'region-label',
+                        html: `<div style="font-weight: bold; color: #000; font-size: 16px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-shadow: 0 1px 3px rgba(255,255,255,0.8);">${region.name}</div>`,
+                        iconSize: [0, 0],
+                        iconAnchor: [0, 0]
+                    })
+                }).addTo(historicalLayer);
+                
+                // 添加悬停效果
+                polygon.on('mouseover', function (e) {
+                    this.setStyle({
+                        fillOpacity: 0.9,
+                        weight: 4,
+                        color: '#21618c'
+                    });
+                    this.bringToFront();
+                });
+                
+                polygon.on('mouseout', function (e) {
+                    this.setStyle({
+                        fillOpacity: 0.7,
+                        weight: 3,
+                        color: '#2980b9'
+                    });
+                });
+            });
+        }
+
+        function addPassages() {
+            passages.forEach(passage => {
+                const polygon = L.polygon(passage.coordinates, {
+                    color: '#c0392b',
+                    fillColor: '#e74c3c',
+                    fillOpacity: 0.85,
+                    weight: 4,
+                    opacity: 1,
+                    dashArray: '5, 5',
+                    lineJoin: 'round',
+                    lineCap: 'round'
+                }).addTo(passageLayer);
+                
+                polygon.bindPopup(`
+                    <div class="info-popup">
+                        <h3>${passage.name}</h3>
+                        <h4>关键地理通道</h4>
+                        <p>${passage.description}</p>
+                        <h4>历史意义</h4>
+                        <p>${passage.history}</p>
+                    </div>
+                `);
+                
+                // 通道名称标签已在历史区域中显示，避免重复渲染
+                // 地理通道只显示多边形，不显示重复标签
+                
+                // 添加悬停效果
+                polygon.on('mouseover', function (e) {
+                    this.setStyle({
+                        fillOpacity: 0.95,
+                        weight: 5,
+                        color: '#a93226',
+                        dashArray: '3, 3'
+                    });
+                    this.bringToFront();
+                });
+                
+                polygon.on('mouseout', function (e) {
+                    this.setStyle({
+                        fillOpacity: 0.85,
+                        weight: 4,
+                        color: '#c0392b',
+                        dashArray: '5, 5'
+                    });
+                });
+            });
+        }
+
+        function toggleLayer(layerType) {
+            const button = event.target;
+            button.classList.toggle('active');
+            
+            if (layerType === 'natural') {
+                if (map.hasLayer(naturalLayer)) {
+                    map.removeLayer(naturalLayer);
+                } else {
+                    map.addLayer(naturalLayer);
+                }
+            } else if (layerType === 'historical') {
+                if (map.hasLayer(historicalLayer)) {
+                    map.removeLayer(historicalLayer);
+                } else {
+                    map.addLayer(historicalLayer);
+                }
+            } else if (layerType === 'passage') {
+                if (map.hasLayer(passageLayer)) {
+                    map.removeLayer(passageLayer);
+                } else {
+                    map.addLayer(passageLayer);
+                }
+            }
+        }
+
+        function zoomIn() {
+            map.zoomIn();
+        }
+
+        function zoomOut() {
+            map.zoomOut();
+        }
+
+        function centerMap() {
+            map.setView([35.8617, 104.1954], 4);
+        }
+
+        function changeMapType() {
+            currentMapType = (currentMapType + 1) % mapTypes.length;
+            map.removeLayer(mapTypes[(currentMapType - 1 + mapTypes.length) % mapTypes.length]);
+            mapTypes[currentMapType].addTo(map);
+        }
+
+        window.onload = function() {
+            initMap();
+        };
+    </script>
+</body>
+</html>

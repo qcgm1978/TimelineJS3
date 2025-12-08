@@ -1,0 +1,197 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "摩亨佐-达罗",
+        "type": "historical_site",
+        "info": "印度河流域文明的重要城市，约公元前2600-1900年"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [68.1772, 27.3221]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "哈拉帕",
+        "type": "historical_site",
+        "info": "印度河流域文明的核心城市，约公元前2600-1900年"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [71.3720, 30.1975]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "华氏城",
+        "type": "historical_site",
+        "info": "孔雀王朝的首都，古代印度的政治和文化中心"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [85.1376, 25.5941]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "拘尸那揭罗",
+        "type": "historical_site",
+        "info": "佛陀涅槃之地，佛教圣地"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [83.8251, 26.7474]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "鹿野苑",
+        "type": "historical_site",
+        "info": "佛陀初转法轮之地，佛教圣地"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [83.0167, 25.3667]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "雅利安人入侵",
+        "type": "invasion",
+        "info": "约公元前1500年，雅利安人从西北部进入印度次大陆"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [74.0000, 31.0000]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "波斯入侵",
+        "type": "invasion",
+        "info": "公元前516年，大流士一世征服印度河流域"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [68.3576, 29.3759]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "希腊入侵",
+        "type": "invasion",
+        "info": "公元前326年，亚历山大大帝入侵印度西北部"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [76.0856, 29.0588]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "贵霜人入侵",
+        "type": "invasion",
+        "info": "公元1世纪，贵霜人从中亚入侵印度北部"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [70.0150, 38.4237]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "阿拉伯入侵",
+        "type": "invasion",
+        "info": "公元712年，阿拉伯人征服信德地区"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [67.0011, 24.8607]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "突厥入侵",
+        "type": "invasion",
+        "info": "11世纪，突厥人建立德里苏丹国"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.2090, 28.6139]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "孔雀王朝",
+        "type": "kingdom",
+        "info": "公元前322-185年，印度历史上第一个统一的大帝国"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [85.1376, 25.5941]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "贵霜帝国",
+        "type": "kingdom",
+        "info": "公元1-3世纪，统治北印度和中亚的强大帝国"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [79.4304, 28.3679]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "笈多王朝",
+        "type": "kingdom",
+        "info": "公元320-550年，印度古典文明的黄金时期"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.4126, 23.2599]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "戒日王朝",
+        "type": "kingdom",
+        "info": "公元606-647年，统一北印度的王朝"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [83.0167, 25.3667]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "朱罗王朝",
+        "type": "kingdom",
+        "info": "公元前3世纪-公元13世纪，南印度的强大王朝"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [79.6909, 10.8041]
+      }
+    }
+  ]
+}

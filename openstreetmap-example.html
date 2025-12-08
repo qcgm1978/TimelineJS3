@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenStreetMap 交互式地图示例</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .map-section {
+            margin-bottom: 40px;
+        }
+        .map-section h2 {
+            color: #555;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .map-container {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .map-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .info h3 {
+            color: #555;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OpenStreetMap 交互式地图示例</h1>
+        
+        <!-- 静态地图 -->
+        <div class="map-section">
+            <h2>静态地图 (India.jpeg)</h2>
+            <div class="map-container">
+                <img src="doc/India.jpeg" alt="印度地图">
+            </div>
+            <div class="map-controls">
+                <button onclick="saveImage('doc/India.jpeg', '印度地图')">保存图片</button>
+                <button onclick="showFullscreen('doc/India.jpeg')">全屏查看</button>
+            </div>
+        </div>
+        
+        <!-- 交互式地图 -->
+        <div class="map-section">
+            <h2>交互式地图 (OpenStreetMap)</h2>
+            <div class="map-container" id="osmMap"></div>
+            <div class="map-controls">
+                <button onclick="zoomIn()">放大</button>
+                <button onclick="zoomOut()">缩小</button>
+                <button onclick="centerMap()">居中</button>
+                <button onclick="changeMapLayer()">切换图层</button>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>地图信息</h3>
+            <p><strong>静态地图：</strong>直接使用图片文件展示地图，适合展示历史地图、自定义地图等。</p>
+            <p><strong>交互式地图：</strong>使用 OpenStreetMap 和 Leaflet.js 实现，支持缩放、平移、图层切换等交互功能。</p>
+            <p><strong>静态地图文件路径：</strong>doc/India.jpeg</p>
+            <p><strong>交互式地图功能：</strong>支持放大、缩小、平移、图层切换等操作，无需API密钥。</p>
+        </div>
+    </div>
+    
+    <script>
+        // 初始化 OpenStreetMap
+        var map = L.map('osmMap').setView([20.5937, 78.9629], 5); // 印度中心点坐标，缩放级别5
+        
+        // 添加默认图层
+        var baseLayers = {
+            "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }),
+            "OpenTopoMap": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            }),
+            "Esri World Imagery": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            })
+        };
+        
+        // 添加默认图层到地图
+        baseLayers.OpenStreetMap.addTo(map);
+        
+        // 创建图层控制器
+        var layerControl = L.control.layers(baseLayers).addTo(map);
+        
+        // 添加标记点
+        L.marker([28.6139, 77.2090]).addTo(map) // 新德里
+            .bindPopup('新德里 - 印度首都')
+            .openPopup();
+        
+        L.marker([19.0760, 72.8777]).addTo(map) // 孟买
+            .bindPopup('孟买 - 印度最大城市');
+        
+        L.marker([22.5726, 88.3639]).addTo(map) // 加尔各答
+            .bindPopup('加尔各答 - 印度东部最大城市');
+        
+        L.marker([12.9716, 77.5946]).addTo(map) // 班加罗尔
+            .bindPopup('班加罗尔 - 印度科技中心');
+        
+        // 地图控制函数
+        function zoomIn() {
+            map.setZoom(map.getZoom() + 1);
+        }
+        
+        function zoomOut() {
+            map.setZoom(map.getZoom() - 1);
+        }
+        
+        function centerMap() {
+            map.setView([20.5937, 78.9629], 5);
+        }
+        
+        var currentLayerIndex = 0;
+        var layerKeys = Object.keys(baseLayers);
+        
+        function changeMapLayer() {
+            currentLayerIndex = (currentLayerIndex + 1) % layerKeys.length;
+            var layerName = layerKeys[currentLayerIndex];
+            
+            // 移除所有图层
+            for (var key in baseLayers) {
+                map.removeLayer(baseLayers[key]);
+            }
+            
+            // 添加新图层
+            baseLayers[layerName].addTo(map);
+        }
+        
+        // 静态地图功能
+        function saveImage(url, filename) {
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = filename + '.jpeg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function showFullscreen(url) {
+            var img = document.createElement('img');
+            img.src = url;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100%';
+            img.style.margin = 'auto';
+            img.style.display = 'block';
+            
+            var fsDiv = document.createElement('div');
+            fsDiv.style.position = 'fixed';
+            fsDiv.style.top = '0';
+            fsDiv.style.left = '0';
+            fsDiv.style.width = '100%';
+            fsDiv.style.height = '100%';
+            fsDiv.style.backgroundColor = 'black';
+            fsDiv.style.zIndex = '9999';
+            fsDiv.style.display = 'flex';
+            fsDiv.style.justifyContent = 'center';
+            fsDiv.style.alignItems = 'center';
+            fsDiv.appendChild(img);
+            
+            // 点击退出全屏
+            fsDiv.onclick = function() {
+                document.body.removeChild(fsDiv);
+            };
+            
+            document.body.appendChild(fsDiv);
+        }
+    </script>
+</body>
+</html>
