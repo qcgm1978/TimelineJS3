@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三国孙权处理官员信息地图</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        #interactive-map {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>三国孙权处理官员信息地图</h1>
+    
+    <div class="image-section">
+        <img src="doc/luxun.png" alt="三国时期地图" style="max-width: 100%; height: auto; border-radius: 5px; margin-bottom: 20px;">
+    </div>
+    
+    <div class="filter-section">
+        <h3>分类筛选</h3>
+        <h4>党派分类：</h4>
+        <label><input type="checkbox" id="filter-all" checked> 全部</label>
+        <label><input type="checkbox" id="filter-prince" checked> 太子</label>
+        <label><input type="checkbox" id="filter-luwang" checked> 鲁王</label>
+        
+        <h4>处理结果：</h4>
+        <label><input type="checkbox" id="filter-death" checked> 死亡</label>
+        <label><input type="checkbox" id="filter-killed" checked> 被诛</label>
+        <label><input type="checkbox" id="filter-downgrade" checked> 贬职</label>
+    </div>
+    
+    <div id="interactive-map"></div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 初始化地图
+        const map = L.map('interactive-map').setView([30.5, 112.5], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        
+        // 官员数据
+        const officials = [
+            { name: "诸葛恪", party: "太子", result: "死亡", location: "建业", lat: 32.0415, lng: 118.7674, image: "doc/luxun.png" },
+            { name: "孙峻", party: "太子", result: "被诛", location: "建业", lat: 32.0415, lng: 118.7674, image: "doc/luxun.png" },
+            { name: "孙綝", party: "鲁王", result: "被诛", location: "建业", lat: 32.0415, lng: 118.7674, image: "doc/luxun.png" },
+            { name: "滕胤", party: "太子", result: "被诛", location: "武昌", lat: 30.3963, lng: 114.3055, image: "doc/luxun.png" },
+            { name: "吕据", party: "太子", result: "被诛", location: "建业", lat: 32.0415, lng: 118.7674, image: "doc/luxun.png" },
+            { name: "孙和", party: "太子", result: "贬职", location: "故鄣", lat: 30.5678, lng: 119.5276, image: "doc/luxun.png" }
+        ];
+        
+        // 地图标记数组
+        let markers = [];
+        
+        // 初始化标记
+        function initMarkers() {
+            officials.forEach(official => {
+                const marker = L.marker([official.lat, official.lng])
+                    .bindPopup(`<img src="${official.image}" alt="${official.name}" style="width: 80px; height: 80px; border-radius: 50%; margin-right: 10px; float: left;"><strong>${official.name}</strong><br>党派: ${official.party}<br>结果: ${official.result}<br>地点: ${official.location}`)
+                    .addTo(map);
+                marker.official = official;
+                markers.push(marker);
+            });
+        }
+        
+        // 应用筛选
+        function applyFilters() {
+            // 移除所有标记
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            // 获取筛选条件
+            const filterAll = document.getElementById('filter-all').checked;
+            const filterPrince = document.getElementById('filter-prince').checked;
+            const filterLuwang = document.getElementById('filter-luwang').checked;
+            const filterDeath = document.getElementById('filter-death').checked;
+            const filterKilled = document.getElementById('filter-killed').checked;
+            const filterDowngrade = document.getElementById('filter-downgrade').checked;
+            
+            // 根据筛选条件显示标记
+            officials.forEach(official => {
+                let show = false;
+                
+                // 党派筛选
+                if (filterAll || 
+                    (filterPrince && official.party === '太子') || 
+                    (filterLuwang && official.party === '鲁王')) {
+                    
+                    // 处理结果筛选
+                    if (filterDeath && official.result === '死亡') show = true;
+                    if (filterKilled && official.result === '被诛') show = true;
+                    if (filterDowngrade && official.result === '贬职') show = true;
+                    
+                    // 如果没有选择处理结果，显示所有
+                    if (!filterDeath && !filterKilled && !filterDowngrade) show = true;
+                }
+                
+                if (show) {
+                    const marker = L.marker([official.lat, official.lng])
+                        .bindPopup(`<img src="${official.image}" alt="${official.name}" style="width: 80px; height: 80px; border-radius: 50%; margin-right: 10px; float: left;"><strong>${official.name}</strong><br>党派: ${official.party}<br>结果: ${official.result}<br>地点: ${official.location}`)
+                        .addTo(map);
+                    marker.official = official;
+                    markers.push(marker);
+                }
+            });
+        }
+        
+        // 初始化
+        initMarkers();
+        
+        // 添加筛选事件监听
+        document.getElementById('filter-all').addEventListener('change', applyFilters);
+        document.getElementById('filter-prince').addEventListener('change', applyFilters);
+        document.getElementById('filter-luwang').addEventListener('change', applyFilters);
+        document.getElementById('filter-death').addEventListener('change', applyFilters);
+        document.getElementById('filter-killed').addEventListener('change', applyFilters);
+        document.getElementById('filter-downgrade').addEventListener('change', applyFilters);
+    </script>
+</body>
+</html>
