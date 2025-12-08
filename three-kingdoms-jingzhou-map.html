@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三国荆州地理与历史</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .content-section {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 25px;
+        }
+        .book-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .book-info h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+        .book-info p {
+            margin: 5px 0;
+        }
+        #interactive-map {
+            height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+        }
+        .map-legend {
+            background-color: white;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .map-legend h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .info-card {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #3498db;
+        }
+        .info-card h4 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .info-card p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>三国古战场，荆州在哪里</h1>
+        <div class="subtitle">《透过地理看历史系列》摘录</div>
+
+        <div class="content-section">
+            <div class="book-info">
+                <h3>核心内容</h3>
+                <p><strong>书籍：</strong>《透过地理看历史系列（全三册）》（李不白著）</p>
+                <p><strong>章节：</strong>第一章 三国古战场，荆州在哪里</p>
+            </div>
+
+            <div class="info-card">
+                <h4>关键信息</h4>
+                <p>• 《三国演义》中荆州出现频率高（70 余回），凸显其战略重要性。</p>
+                <p>• 古今「荆州」范围不同：三国时期的「荆州」是大行政区（含多郡），而现在的荆州市（原沙市、荆沙），在三国时名为「江陵」，属南郡；唐朝后才逐渐与「荆州」名称关联。</p>
+            </div>
+
+            <div class="info-card">
+                <h4>背景补充</h4>
+                <p>• 三国荆州的地位：是魏蜀吴三方争夺的核心区域（如「借荆州」「夷陵之战」均围绕此地），因其地处江汉平原，是南北交通枢纽。</p>
+                <p>• 江陵的演变：作为南郡治所，自三国至唐宋多次更名，明清时期为荆州府治，现代逐步演变为今荆州市。</p>
+            </div>
+
+            <h3>三国荆州地理地图</h3>
+            <div id="interactive-map"></div>
+
+            <div class="map-legend">
+                <h3>地图说明</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(52, 152, 219, 0.7);"></div>
+                    <span>三国时期荆州大致范围</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(231, 76, 60, 0.8);"></div>
+                    <span>江陵（今荆州市）</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(46, 204, 113, 0.7);"></div>
+                    <span>南郡范围</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 初始化地图
+        const map = L.map('interactive-map').setView([30.5, 112.5], 7);
+
+        // 添加底图
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // 三国时期荆州大致范围坐标
+        const jingzhouCoordinates = [
+            [33.0, 110.0], [33.0, 114.0], [29.0, 114.0], [29.0, 110.0], [33.0, 110.0]
+        ];
+
+        // 南郡大致范围坐标
+        const nanjunCoordinates = [
+            [31.0, 111.0], [31.0, 113.0], [30.0, 113.0], [30.0, 111.0], [31.0, 111.0]
+        ];
+
+        // 创建图层组
+        const jingzhouLayer = L.layerGroup().addTo(map);
+
+        // 添加三国荆州范围
+        L.polygon(jingzhouCoordinates, {
+            color: '#3498db',
+            fillColor: '#3498db',
+            fillOpacity: 0.3,
+            weight: 3,
+            opacity: 0.8
+        }).addTo(jingzhouLayer).bindPopup(`
+            <div>
+                <h4>三国时期荆州</h4>
+                <p>大行政区，包含多个郡，是魏蜀吴三方争夺的核心区域</p>
+                <p>在《三国演义》中出现70余回，凸显其战略重要性</p>
+            </div>
+        `);
+
+        // 添加南郡范围
+        L.polygon(nanjunCoordinates, {
+            color: '#2ecc71',
+            fillColor: '#2ecc71',
+            fillOpacity: 0.4,
+            weight: 2,
+            opacity: 0.7
+        }).addTo(jingzhouLayer).bindPopup(`
+            <div>
+                <h4>南郡</h4>
+                <p>三国时期荆州的重要郡治</p>
+                <p>治所在江陵（今荆州市）</p>
+            </div>
+        `);
+
+        // 添加江陵（今荆州市）标记
+        L.marker([30.3304, 112.2558], {
+            icon: L.divIcon({
+                className: 'city-marker',
+                html: `<div style="background-color: #e74c3c; color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold; font-size: 14px;">江陵</div>`,
+                iconSize: [80, 30],
+                iconAnchor: [40, 15]
+            })
+        }).addTo(jingzhouLayer).bindPopup(`
+            <div>
+                <h4>江陵（今荆州市）</h4>
+                <p>三国时期南郡的治所</p>
+                <p>唐朝后逐渐与「荆州」名称关联</p>
+                <p>现为湖北省荆州市</p>
+            </div>
+        `);
+
+        // 添加古今荆州对比标记
+        L.marker([30.3304, 112.2558], {
+            icon: L.divIcon({
+                className: 'info-marker',
+                html: `<div style="background-color: #f39c12; color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold; font-size: 14px;">今荆州市</div>`,
+                iconSize: [100, 30],
+                iconAnchor: [50, 15]
+            })
+        }).addTo(jingzhouLayer).bindPopup(`
+            <div>
+                <h4>今荆州市</h4>
+                <p>原沙市、荆沙合并而成</p>
+                <p>三国时期名为「江陵」，属南郡</p>
+                <p>明清时期为荆州府治</p>
+            </div>
+        `);
+
+        // 添加文字说明
+        const mapCenter = map.getCenter();
+        L.marker([mapCenter.lat + 1.5, mapCenter.lng], {
+            icon: L.divIcon({
+                className: 'info-text',
+                html: `<div style="background-color: rgba(255, 255, 255, 0.9); color: #333; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">三国荆州地理示意</div>`,
+                iconSize: [200, 50],
+                iconAnchor: [100, 25]
+            })
+        }).addTo(jingzhouLayer);
+    </script>
+</body>
+</html>

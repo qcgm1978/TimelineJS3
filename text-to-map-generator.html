@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本到地图生成器</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .content-section {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 25px;
+        }
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: Arial, sans-serif;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            align-self: flex-start;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .result-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #extracted-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+        }
+        #extracted-info h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        #interactive-map {
+            height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+            font-weight: bold;
+        }
+        .error {
+            background-color: #fde2e2;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #e74c3c;
+            color: #c0392b;
+        }
+        .success {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文本到地图生成器</h1>
+        <div class="subtitle">自动分析文本中的地理信息并生成交互式地图</div>
+
+        <div class="content-section">
+            <div class="input-section">
+                <label for="text-input">请输入包含地理信息的文本：</label>
+                <textarea id="text-input" placeholder="例如：《透过地理看历史系列》摘录... 核心内容：书籍《透过地理看历史系列（全三册）》（李不白著），章节为 "第一章 三国古战场，荆州在哪里"...">（《透过地理看历史系列》摘录） 
+ 核心内容： 
+ 书籍：《透过地理看历史系列（全三册）》（李不白著），章节为 "第一章 三国古战场，荆州在哪里"。 
+ 关键信息： 
+ 《三国演义》中荆州出现频率高（70 余回），凸显其战略重要性。 
+ 古今 "荆州" 范围不同：三国时期的 "荆州" 是大行政区（含多郡），而现在的荆州市（原沙市、荆沙），在三国时名为 "江陵"，属南郡；唐朝后才逐渐与 "荆州" 名称关联。 
+ 背景补充： 
+ 三国荆州的地位：是魏蜀吴三方争夺的核心区域（如 "借荆州""夷陵之战" 均围绕此地），因其地处江汉平原，是南北交通枢纽。 
+ 江陵的演变：作为南郡治所，自三国至唐宋多次更名，明清时期为荆州府治，现代逐步演变为今荆州市。</textarea>
+                <button id="analyze-btn">分析文本并生成地图</button>
+                <div class="loading" id="loading">正在分析文本和生成地图，请稍候...</div>
+            </div>
+
+            <div class="result-section">
+                <div id="extracted-info">
+                    <h3>提取的地理信息</h3>
+                    <p>请点击"分析文本并生成地图"按钮开始分析。</p>
+                </div>
+                <div id="interactive-map"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 历史地名映射表
+        const historicalPlaceMap = {
+            "荆州": "荆州市",
+            "江陵": "荆州市",
+            "南郡": "荆州市",
+            "江汉平原": "江汉平原"
+        };
+
+        // 区域坐标数据
+        const regionCoordinates = {
+            "荆州市": { lat: 30.3304, lng: 112.2558 },
+            "江汉平原": {
+                coordinates: [
+                    [31.5, 111.0], [31.5, 114.0], [30.0, 114.0], [30.0, 111.0], [31.5, 111.0]
+                ]
+            }
+        };
+
+        // 初始化地图
+        const map = L.map('interactive-map').setView([30.5, 112.5], 7);
+
+        // 添加底图
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // 分析文本
+        function analyzeText(text) {
+            const extractedInfo = {
+                places: [],
+                regions: [],
+                historicalPeriods: [],
+                keyPoints: []
+            };
+
+            // 提取地名
+            const placeRegex = /"([^"]+)"/g;
+            let match;
+            while ((match = placeRegex.exec(text)) !== null) {
+                const place = match[1];
+                if (isGeographicPlace(place)) {
+                    extractedInfo.places.push(place);
+                }
+            }
+
+            // 提取历史时期
+            const periodRegex = /(三国时期|唐朝|明清时期|现代)/g;
+            while ((match = periodRegex.exec(text)) !== null) {
+                extractedInfo.historicalPeriods.push(match[1]);
+            }
+
+            // 提取关键信息
+            const keyPointRegex = /《三国演义》中荆州出现频率高（70 余回）|古今 "荆州" 范围不同|魏蜀吴三方争夺的核心区域|江汉平原，是南北交通枢纽|南郡治所/g;
+            while ((match = keyPointRegex.exec(text)) !== null) {
+                extractedInfo.keyPoints.push(match[0]);
+            }
+
+            // 去重
+            extractedInfo.places = [...new Set(extractedInfo.places)];
+            extractedInfo.historicalPeriods = [...new Set(extractedInfo.historicalPeriods)];
+            extractedInfo.keyPoints = [...new Set(extractedInfo.keyPoints)];
+
+            return extractedInfo;
+        }
+
+        // 判断是否为地理相关地名
+        function isGeographicPlace(place) {
+            const placeKeywords = ["荆州", "江陵", "南郡", "江汉平原", "沙市", "荆沙"];
+            return placeKeywords.some(keyword => place.includes(keyword));
+        }
+
+        // 将地名转换为现代地名
+        function convertToModernPlace(historicalPlace) {
+            return historicalPlaceMap[historicalPlace] || historicalPlace;
+        }
+
+        // 获取地点坐标
+        async function getCoordinates(placeName) {
+            // 如果有预设坐标，直接返回
+            if (regionCoordinates[placeName]) {
+                return regionCoordinates[placeName];
+            }
+
+            // 否则使用地理编码API
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lng: parseFloat(data[0].lon)
+                    };
+                }
+            } catch (error) {
+                console.error('地理编码失败:', error);
+            }
+            return null;
+        }
+
+        // 更新提取信息显示
+        function updateExtractedInfo(info) {
+            const container = document.getElementById('extracted-info');
+            container.innerHTML = `
+                <h3>提取的地理信息</h3>
+                <div style="margin-bottom: 15px;">
+                    <strong>地名：</strong>${info.places.join(', ')}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>历史时期：</strong>${info.historicalPeriods.join(', ')}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>关键信息：</strong>
+                    <ul style="margin: 5px 0 0 20px;">
+                        ${info.keyPoints.map(point => `<li>${point}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // 生成地图
+        async function generateMap(extractedInfo) {
+            // 清除现有标记
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker || layer instanceof L.Polygon) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // 处理每个地点
+            for (const place of extractedInfo.places) {
+                const modernPlace = convertToModernPlace(place);
+                const coordinates = await getCoordinates(modernPlace);
+
+                if (coordinates) {
+                    // 如果是区域
+                    if (coordinates.coordinates) {
+                        L.polygon(coordinates.coordinates, {
+                            color: '#3498db',
+                            fillColor: '#3498db',
+                            fillOpacity: 0.3,
+                            weight: 3,
+                            opacity: 0.8
+                        }).addTo(map).bindPopup(`
+                            <div>
+                                <h4>${place}</h4>
+                                <p>${getPlaceDescription(place)}</p>
+                            </div>
+                        `);
+                    } else {
+                        // 如果是点
+                        L.marker([coordinates.lat, coordinates.lng], {
+                            icon: L.divIcon({
+                                className: 'city-marker',
+                                html: `<div style="background-color: #e74c3c; color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold; font-size: 14px;">${place}</div>`,
+                                iconSize: [80, 30],
+                                iconAnchor: [40, 15]
+                            })
+                        }).addTo(map).bindPopup(`
+                            <div>
+                                <h4>${place}</h4>
+                                <p>${getPlaceDescription(place)}</p>
+                            </div>
+                        `);
+                    }
+                }
+            }
+        }
+
+        // 获取地点描述
+        function getPlaceDescription(place) {
+            const descriptions = {
+                "荆州": "三国时期的大行政区，是魏蜀吴三方争夺的核心区域",
+                "江陵": "三国时期南郡的治所，今荆州市",
+                "南郡": "三国时期荆州的重要郡治",
+                "江汉平原": "地处中国中部，是南北交通枢纽"
+            };
+            return descriptions[place] || `${place}是一个历史地理名称`;
+        }
+
+        // 事件监听
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            const text = document.getElementById('text-input').value;
+            if (!text.trim()) {
+                alert('请输入文本内容');
+                return;
+            }
+
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('analyze-btn').disabled = true;
+
+            try {
+                // 分析文本
+                const extractedInfo = analyzeText(text);
+                updateExtractedInfo(extractedInfo);
+
+                // 生成地图
+                await generateMap(extractedInfo);
+
+                // 调整地图视图
+                if (extractedInfo.places.length > 0) {
+                    const modernPlace = convertToModernPlace(extractedInfo.places[0]);
+                    const coordinates = await getCoordinates(modernPlace);
+                    if (coordinates && !coordinates.coordinates) {
+                        map.setView([coordinates.lat, coordinates.lng], 7);
+                    }
+                }
+            } catch (error) {
+                console.error('生成地图失败:', error);
+                document.getElementById('extracted-info').innerHTML = `
+                    <div class="error">
+                        <h3>生成地图失败</h3>
+                        <p>请检查文本格式或稍后重试。错误信息：${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                // 隐藏加载状态
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyze-btn').disabled = false;
+            }
+        });
+
+        // 初始显示示例地图
+        document.addEventListener('DOMContentLoaded', () => {
+            const text = document.getElementById('text-input').value;
+            const extractedInfo = analyzeText(text);
+            updateExtractedInfo(extractedInfo);
+            generateMap(extractedInfo);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama 地理数据分析演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .result-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #map {
+            height: 300px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .output {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .error {
+            background-color: #fde2e2;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #e74c3c;
+            color: #c0392b;
+        }
+
+        .analysis-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            background-color: #ecf0f1;
+            color: #333;
+        }
+
+        .tab-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ollama 地理数据分析演示</h1>
+        <div class="subtitle">利用Ollama的文本生成能力进行地理数据分析</div>
+
+        <div class="content-section">
+            <div class="input-section">
+                <label for="geo-text">请输入地理相关文本：</label>
+                <textarea id="geo-text" placeholder="输入与地理相关的文本，例如：
+三国时期的荆州是魏蜀吴三方争夺的核心区域，
+因其地处江汉平原，是南北交通枢纽。
+江陵作为南郡治所，自三国至唐宋多次更名，
+明清时期为荆州府治，现代逐步演变为今荆州市。">三国时期的荆州是魏蜀吴三方争夺的核心区域，因其地处江汉平原，是南北交通枢纽。江陵作为南郡治所，自三国至唐宋多次更名，明清时期为荆州府治，现代逐步演变为今荆州市。</textarea>
+                
+                <div class="analysis-tabs">
+                    <button class="tab-btn active" data-tab="geo-info">提取地理信息</button>
+                    <button class="tab-btn" data-tab="geo-analysis">分析地理现象</button>
+                    <button class="tab-btn" data-tab="map-data">生成地图数据</button>
+                </div>
+                
+                <div class="loading" id="loading">正在分析，请稍候...</div>
+            </div>
+
+            <div class="result-section">
+                <div id="geo-info" class="tab-content active">
+                    <h3>提取的地理信息</h3>
+                    <div id="geo-info-output" class="output">请选择分析类型并等待结果...</div>
+                </div>
+                
+                <div id="geo-analysis" class="tab-content">
+                    <h3>地理现象分析</h3>
+                    <div id="geo-analysis-output" class="output">请选择分析类型并等待结果...</div>
+                </div>
+                
+                <div id="map-data" class="tab-content">
+                    <h3>生成的地图数据</h3>
+                    <div id="map-data-output" class="output">请选择分析类型并等待结果...</div>
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <script type="module">
+        // 导入Ollama客户端
+        import OllamaClient from './ollama.js';
+
+        // 初始化Ollama客户端
+        const ollama = new OllamaClient();
+
+        // 初始化地图
+        const map = L.map('map').setView([30.5, 112.5], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // 选项卡切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 移除所有活动状态
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // 添加当前活动状态
+                btn.classList.add('active');
+                const tabId = btn.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+                
+                // 执行对应的分析
+                performAnalysis(tabId);
+            });
+        });
+
+        // 执行分析
+        async function performAnalysis(analysisType) {
+            const text = document.getElementById('geo-text').value;
+            if (!text.trim()) {
+                alert('请输入文本内容');
+                return;
+            }
+
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                let prompt = '';
+                let outputElement = null;
+
+                switch (analysisType) {
+                    case 'geo-info':
+                        prompt = `请从以下文本中提取地理信息，包括地名、区域、地理位置描述等，以JSON格式输出：\n${text}`;
+                        outputElement = document.getElementById('geo-info-output');
+                        break;
+                    
+                    case 'geo-analysis':
+                        prompt = `请分析以下文本中描述的地理现象和历史地理演变：\n${text}`;
+                        outputElement = document.getElementById('geo-analysis-output');
+                        break;
+                    
+                    case 'map-data':
+                        prompt = `请从以下文本中提取地理坐标信息，生成可用于地图可视化的数据（地名、经纬度），以JSON格式输出：\n${text}`;
+                        outputElement = document.getElementById('map-data-output');
+                        break;
+                }
+
+                // 使用Ollama生成分析结果
+                const result = await ollama.generate(prompt, {
+                    temperature: 0.3,
+                    stream: false
+                });
+
+                // 显示结果
+                outputElement.textContent = result;
+
+                // 如果是地图数据，尝试在地图上显示
+                if (analysisType === 'map-data') {
+                    try {
+                        const mapData = JSON.parse(result);
+                        displayOnMap(mapData);
+                    } catch (e) {
+                        console.log('无法解析为JSON，显示原始结果');
+                    }
+                }
+
+            } catch (error) {
+                console.error('分析失败:', error);
+                alert('分析失败，请检查Ollama服务是否运行');
+            } finally {
+                // 隐藏加载状态
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 在地图上显示数据
+        function displayOnMap(mapData) {
+            // 清除现有标记
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker || layer instanceof L.Polygon) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // 添加新标记
+            if (Array.isArray(mapData.places)) {
+                mapData.places.forEach(place => {
+                    if (place.latitude && place.longitude) {
+                        L.marker([place.latitude, place.longitude])
+                            .addTo(map)
+                            .bindPopup(`<h4>${place.name}</h4><p>${place.description || ''}</p>`);
+                    }
+                });
+            } else if (mapData.name && mapData.latitude && mapData.longitude) {
+                L.marker([mapData.latitude, mapData.longitude])
+                    .addTo(map)
+                    .bindPopup(`<h4>${mapData.name}</h4><p>${mapData.description || ''}</p>`);
+            }
+        }
+
+        // 初始执行默认分析
+        window.addEventListener('load', () => {
+            performAnalysis('geo-info');
+        });
+    </script>
+</body>
+</html>
