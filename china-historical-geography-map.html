@@ -38,7 +38,8 @@
             margin-bottom: 30px;
             padding: 25px;
         }
-        #interactive-map {
+        #map {
+            width: 100%;
             height: 600px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.15);
@@ -174,7 +175,7 @@
         <p class="subtitle">地理环境与历史发展的空间关系可视化</p>
 
         <div class="map-section">
-            <div id="interactive-map"></div>
+            <div id="map"></div>
             
             <div class="controls">
                 <button onclick="toggleLayer('natural')" class="active">自然地理单元</button>
@@ -367,28 +368,36 @@
         ];
 
         function initMap() {
-            map = L.map('interactive-map').setView([35.8617, 104.1954], 4);
-            
-            // 添加瓦片加载错误监听
-            mapTypes.forEach((layer, index) => {
-                layer.on('tileerror', function(error) {
-                    console.error(`瓦片图层 ${index} 加载错误:`, error);
+            // 确保DOM完全加载后再初始化地图
+            setTimeout(function() {
+                map = L.map('map').setView([35.8617, 104.1954], 4);
+                
+                // 添加瓦片加载错误监听
+                mapTypes.forEach((layer, index) => {
+                    layer.on('tileerror', function(error) {
+                        console.error(`瓦片图层 ${index} 加载错误:`, error);
+                    });
                 });
-            });
-            
-            mapTypes[currentMapType].addTo(map);
-            
-            addNaturalRegions();
-            addHistoricalRegions();
-            addPassages();
-            addModernAdminRegions();
-            
-            naturalLayer.addTo(map);
-            historicalLayer.addTo(map);
-            passageLayer.addTo(map);
-            // 现代行政区域名称默认不显示
-            
-            console.log('地图初始化完成，当前图层:', currentMapType);
+                
+                mapTypes[currentMapType].addTo(map);
+                
+                addNaturalRegions();
+                addHistoricalRegions();
+                addPassages();
+                addModernAdminRegions();
+                
+                naturalLayer.addTo(map);
+                historicalLayer.addTo(map);
+                passageLayer.addTo(map);
+                // 现代行政区域名称默认不显示
+                
+                // 触发地图resize事件，确保地图正确适应容器尺寸
+                setTimeout(function() {
+                    map.invalidateSize();
+                }, 100);
+                
+                console.log('地图初始化完成，当前图层:', currentMapType);
+            }, 0);
         }
 
         function addModernAdminRegions() {

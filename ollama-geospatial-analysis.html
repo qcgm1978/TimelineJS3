@@ -90,6 +90,7 @@
         }
 
         #map {
+            width: 100%;
             height: 300px;
             border-radius: 8px;
             margin-top: 20px;
@@ -218,6 +219,13 @@
                 const tabId = btn.dataset.tab;
                 document.getElementById(tabId).classList.add('active');
                 
+                // 如果切换到地图数据选项卡，触发地图重绘
+                if (tabId === 'map-data') {
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 100);
+                }
+                
                 // 执行对应的分析
                 performAnalysis(tabId);
             });
@@ -250,14 +258,14 @@
                         break;
                     
                     case 'map-data':
-                        prompt = `请从以下文本中提取地理坐标信息，生成可用于地图可视化的数据（地名、经纬度），以JSON格式输出：\n${text}`;
+                        prompt = `请从以下文本中提取地理坐标信息，生成可用于地图可视化的数据（地名、经纬度），以JSON格式输出，不需要Explanation：\n${text}`;
                         outputElement = document.getElementById('map-data-output');
                         break;
                 }
 
                 // 使用Ollama生成分析结果
                 const result = await ollama.generate(prompt, {
-                    temperature: 0.3,
+                    temperature: 0.1,
                     stream: false
                 });
 
@@ -267,7 +275,7 @@
                 // 如果是地图数据，尝试在地图上显示
                 if (analysisType === 'map-data') {
                     try {
-                        const mapData = JSON.parse(result);
+                        const mapData = JSON.parse(result.replace(/```json|```/g, ''));
                         displayOnMap(mapData);
                     } catch (e) {
                         console.log('无法解析为JSON，显示原始结果');
@@ -306,6 +314,11 @@
                     .addTo(map)
                     .bindPopup(`<h4>${mapData.name}</h4><p>${mapData.description || ''}</p>`);
             }
+
+            // 触发地图重绘，确保显示完整
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
         }
 
         // 初始执行默认分析
