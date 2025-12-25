@@ -97,6 +97,7 @@
             <p><strong>地图功能：</strong>显示三国时期长江流域的江东、江西、江南三大区域，以及长江河道和重要城市。</p>
             <p><strong>技术实现：</strong>使用 Leaflet.js 进行地图渲染，结合历史地理数据进行区域划分。</p>
             <p><strong>数据来源：</strong>基于三国时期的历史文献和地理研究，包括江东六郡等行政区划。</p>
+            <p><strong>交互功能：</strong>点击图例可切换显示/隐藏对应的地理要素，支持悬停高亮效果。</p>
         </div>
     </div>
 
@@ -151,10 +152,10 @@
 
         // Add Yangtze River
         const riverPath = [
-            [32.0, 116.0], [31.8, 116.5], [31.6, 117.0], [31.4, 117.5], [31.2, 118.0], [31.0, 118.5], 
-            [30.8, 118.8], [30.6, 119.0], [30.4, 119.2], [30.2, 119.4], [30.0, 119.5], [29.8, 119.6], 
-            [29.6, 119.5], [29.4, 119.3], [29.2, 119.0], [29.0, 118.5], [28.8, 118.0], [28.6, 117.5], 
-            [28.4, 117.0], [28.2, 116.5], [28.0, 116.0], [27.8, 115.5], [27.6, 115.0], [27.4, 114.5], [27.0, 114.0]
+            [29.5, 112.0], [29.6, 112.5], [29.7, 113.0], [29.8, 113.5], [29.7, 114.0], 
+            [29.6, 114.5], [29.5, 115.0], [29.4, 115.5], [29.3, 116.0], [29.2, 116.5], 
+            [29.1, 117.0], [29.0, 117.5], [28.9, 118.0], [28.8, 118.5], [28.7, 119.0], 
+            [28.6, 119.5], [28.5, 120.0], [28.4, 120.5], [28.3, 121.0], [28.2, 121.5]
         ];
 
         L.polyline(riverPath, {
@@ -167,45 +168,89 @@
         // Add test city
         L.marker([32.0603, 118.7969]).addTo(map1).bindPopup('<div><h4>建业</h4><p>孙吴都城</p></div>');
 
-        // Test map 2 - Integration
+        // Test map 2 - Integration with toggle functionality
         const map2 = L.map('map2').setView([30.5, 118.5], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map2);
 
-        // Add same regions to second map
-        L.polygon(jiangdong, {
+        // Create separate layer groups for map2
+        const jiangdongLayer2 = L.layerGroup();
+        const jiangxiLayer2 = L.layerGroup();
+        const jiangnanLayer2 = L.layerGroup();
+        const riverLayer2 = L.layerGroup();
+
+        // Create polygons for map2
+        const jiangdong2 = L.polygon(jiangdong, {
             color: '#c0392b',
             fillColor: '#e74c3c',
             fillOpacity: 0.5,
             weight: 3,
             opacity: 0.9
-        }).addTo(map2).bindPopup('<div><h4>江东 (Dongjiang)</h4><p>孙吴政权核心区域</p></div>');
+        }).bindPopup('<div><h4>江东 (Dongjiang)</h4><p>孙吴政权核心区域</p></div>');
 
-        L.polygon(jiangxi, {
+        const jiangxi2 = L.polygon(jiangxi, {
             color: '#2980b9',
             fillColor: '#3498db',
             fillOpacity: 0.5,
             weight: 3,
             opacity: 0.9
-        }).addTo(map2).bindPopup('<div><h4>江西 (Jiangxi)</h4><p>豫章郡等区域</p></div>');
+        }).bindPopup('<div><h4>江西 (Jiangxi)</h4><p>豫章郡等区域</p></div>');
 
-        L.polygon(jiangnan, {
+        const jiangnan2 = L.polygon(jiangnan, {
             color: '#27ae60',
             fillColor: '#2ecc71',
             fillOpacity: 0.4,
             weight: 2,
             opacity: 0.8
-        }).addTo(map2).bindPopup('<div><h4>江南 (Jiangnan)</h4><p>长江以南地区</p></div>');
+        }).bindPopup('<div><h4>江南 (Jiangnan)</h4><p>长江以南地区</p></div>');
 
-        L.polyline(riverPath, {
+        const river2 = L.polyline(riverPath, {
             color: '#f39c12',
             weight: 8,
             opacity: 0.7,
             dashArray: '10, 8'
-        }).addTo(map2).bindPopup('<div><h4>长江水道</h4><p>魏吴对峙的天然分界线</p></div>');
+        }).bindPopup('<div><h4>长江水道</h4><p>魏吴对峙的天然分界线</p></div>');
 
+        // Add to layer groups
+        jiangdongLayer2.addLayer(jiangdong2);
+        jiangxiLayer2.addLayer(jiangxi2);
+        jiangnanLayer2.addLayer(jiangnan2);
+        riverLayer2.addLayer(river2);
+
+        // Add all layers to map2
+        jiangdongLayer2.addTo(map2);
+        jiangxiLayer2.addTo(map2);
+        jiangnanLayer2.addTo(map2);
+        riverLayer2.addTo(map2);
+
+        // Add test city to map2
         L.marker([32.0603, 118.7969]).addTo(map2).bindPopup('<div><h4>建业</h4><p>孙吴都城</p></div>');
+
+        // Add hover effects to map2
+        [jiangdong2, jiangxi2, jiangnan2, river2].forEach(layer => {
+            layer.on('mouseover', function (e) {
+                this.setStyle({
+                    fillOpacity: 0.7,
+                    weight: 10
+                });
+                this.bringToFront();
+            });
+
+            layer.on('mouseout', function (e) {
+                if (this instanceof L.Polygon) {
+                    this.setStyle({
+                        fillOpacity: (this.options.fillColor === '#e74c3c') ? 0.5 : 0.4,
+                        weight: (this.options.fillColor === '#e74c3c') ? 3 : 2
+                    });
+                } else if (this instanceof L.Polyline) {
+                    this.setStyle({
+                        opacity: 0.7,
+                        weight: 8
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>

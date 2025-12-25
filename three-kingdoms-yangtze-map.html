@@ -166,23 +166,23 @@
 
             <div class="map-legend">
                 <h3>地图图例</h3>
-                <div class="legend-item">
+                <div class="legend-item" id="legend-jiangdong" style="cursor: pointer;">
                     <div class="legend-color" style="background-color: rgba(231, 76, 60, 0.6);"></div>
                     <span>江东 (Dongjiang) - 孙吴政权核心区域</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" id="legend-jiangxi" style="cursor: pointer;">
                     <div class="legend-color" style="background-color: rgba(52, 152, 219, 0.6);"></div>
                     <span>江西 (Jiangxi) - 豫章郡等区域</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" id="legend-jiangnan" style="cursor: pointer;">
                     <div class="legend-color" style="background-color: rgba(46, 204, 113, 0.6);"></div>
                     <span>江南 (Jiangnan) - 广义长江以南地区</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" id="legend-river" style="cursor: pointer;">
                     <div class="legend-color" style="background-color: rgba(241, 196, 15, 0.8); border: 1px solid #d35400;"></div>
                     <span>长江水道</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" id="legend-city" style="cursor: pointer;">
                     <div class="legend-color" style="background-color: rgba(155, 89, 182, 0.8);"></div>
                     <span>重要城市</span>
                 </div>
@@ -202,7 +202,7 @@
 
         // 江东区域坐标（精确到江东六郡范围）
         const jiangdongCoordinates = [
-            [32.0, 118.0], [32.0, 122.0], [30.0, 122.0], [30.0, 121.0], [29.5, 120.5], [29.0, 120.0],
+            [32.0, 118.0], [32.0, 122.0], [30.0, 122.0], [30.0, 121.0], [29.5, 120.5], [29.0, 120.0], 
             [28.5, 119.0], [28.0, 118.0], [30.0, 117.0], [31.0, 117.0], [32.0, 118.0]
         ];
 
@@ -213,34 +213,38 @@
 
         // 江南区域坐标（长江中下游南岸区域，覆盖江东但突出江南概念）
         const jiangnanCoordinates = [
-            [32.0, 118.0], [31.5, 119.0], [31.0, 120.0], [30.5, 120.5], [30.0, 120.0], [29.5, 119.5],
-            [29.0, 119.0], [28.5, 118.0], [28.0, 117.0], [27.5, 116.0], [27.0, 115.0], [27.0, 114.0],
+            [32.0, 118.0], [31.5, 119.0], [31.0, 120.0], [30.5, 120.5], [30.0, 120.0], [29.5, 119.5], 
+            [29.0, 119.0], [28.5, 118.0], [28.0, 117.0], [27.5, 116.0], [27.0, 115.0], [27.0, 114.0], 
             [28.0, 114.0], [29.0, 115.0], [30.0, 116.0], [31.0, 117.0], [32.0, 118.0]
         ];
 
-        // 长江河道坐标（更精确的长江河道模拟）
+        // 长江河道坐标（重点突出三国时期重要的江段）
         const yangtzeRiverPath = [
-            [32.0, 116.0], [31.8, 116.5], [31.6, 117.0], [31.4, 117.5], [31.2, 118.0], [31.0, 118.5],
-            [30.8, 118.8], [30.6, 119.0], [30.4, 119.2], [30.2, 119.4], [30.0, 119.5], [29.8, 119.6],
-            [29.6, 119.5], [29.4, 119.3], [29.2, 119.0], [29.0, 118.5], [28.8, 118.0], [28.6, 117.5],
-            [28.4, 117.0], [28.2, 116.5], [28.0, 116.0], [27.8, 115.5], [27.6, 115.0], [27.4, 114.5], [27.0, 114.0]
+            [29.5, 112.0], [29.6, 112.5], [29.7, 113.0], [29.8, 113.5], [29.7, 114.0], 
+            [29.6, 114.5], [29.5, 115.0], [29.4, 115.5], [29.3, 116.0], [29.2, 116.5], 
+            [29.1, 117.0], [29.0, 117.5], [28.9, 118.0], [28.8, 118.5], [28.7, 119.0], 
+            [28.6, 119.5], [28.5, 120.0], [28.4, 120.5], [28.3, 121.0], [28.2, 121.5]
         ];
 
-        // 创建图层组
-        const regionLayer = L.layerGroup().addTo(map);
+        // 创建独立的图层组
+        const jiangdongLayer = L.layerGroup();
+        const jiangxiLayer = L.layerGroup();
+        const jiangnanLayer = L.layerGroup();
+        const riverLayer = L.layerGroup();
+        const cityLayer = L.layerGroup();
 
         // 添加江东区域
-        L.polygon(jiangdongCoordinates, {
+        const jiangdongPolygon = L.polygon(jiangdongCoordinates, {
             color: '#c0392b',
             fillColor: '#e74c3c',
             fillOpacity: 0.5,
             weight: 3,
             opacity: 0.9
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div class="info-popup">
                 <h3>江东 (Dongjiang)</h3>
                 <h4>地理范围</h4>
-                <p>长江下游以东地区，大致包括今江苏南部、浙江北部、安徽东南部</p>
+                <p>三国时期江东六郡区域，长江下游南岸，大致包括今江苏南部、浙江北部、安徽东南部</p>
                 <h4>行政区域</h4>
                 <p>三国时期属孙吴管辖，主要包括江东六郡：</p>
                 <p>• 吴郡（治所在今苏州）</p>
@@ -255,17 +259,17 @@
         `);
 
         // 添加江西区域
-        L.polygon(jiangxiCoordinates, {
+        const jiangxiPolygon = L.polygon(jiangxiCoordinates, {
             color: '#2980b9',
             fillColor: '#3498db',
             fillOpacity: 0.5,
             weight: 3,
             opacity: 0.9
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div class="info-popup">
                 <h3>江西 (Jiangxi)</h3>
                 <h4>地理范围</h4>
-                <p>长江以西、赣江流域为中心的区域，大致包括今江西省大部</p>
+                <p>长江中下游西岸、赣江流域为中心的区域，大致包括今江西省大部</p>
                 <h4>行政区域</h4>
                 <p>三国时期属孙吴管辖，主要包括：</p>
                 <p>• 豫章郡（治所在今南昌）</p>
@@ -277,13 +281,13 @@
         `);
 
         // 添加江南区域（强调文化地理概念）
-        L.polygon(jiangnanCoordinates, {
+        const jiangnanPolygon = L.polygon(jiangnanCoordinates, {
             color: '#27ae60',
             fillColor: '#2ecc71',
             fillOpacity: 0.4,
             weight: 2,
             opacity: 0.8
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div class="info-popup">
                 <h3>江南 (Jiangnan)</h3>
                 <h4>地理范围</h4>
@@ -296,12 +300,12 @@
         `);
 
         // 绘制长江河道
-        L.polyline(yangtzeRiverPath, {
+        const yangtzeRiver = L.polyline(yangtzeRiverPath, {
             color: '#f39c12',
             weight: 8,
             opacity: 0.7,
             dashArray: '10, 8'
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div class="info-popup">
                 <h3>长江水道</h3>
                 <h4>地理特征</h4>
@@ -314,152 +318,148 @@
             </div>
         `);
 
+        // 将图层添加到对应图层组
+        jiangdongLayer.addLayer(jiangdongPolygon);
+        jiangxiLayer.addLayer(jiangxiPolygon);
+        jiangnanLayer.addLayer(jiangnanPolygon);
+        riverLayer.addLayer(yangtzeRiver);
+
         // 添加重要城市标记
-        // 建业（今南京）- 孙吴都城
-        L.marker([32.0603, 118.7969], {
-            icon: L.divIcon({
-                className: 'city-marker',
-                html: `<div class="major-city">建业</div>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            })
-        }).addTo(regionLayer).bindPopup(`
-            <div class="info-popup">
-                <h3>建业 (今南京)</h3>
-                <h4>政治地位</h4>
-                <p>孙吴政权都城，江东地区的政治中心</p>
-                <h4>历史意义</h4>
-                <p>孙权于229年在此称帝，建立吴国，是三国时期的重要都城</p>
-                <p>凭借长江天险，成为抵御曹魏南侵的重要屏障</p>
-            </div>
-        `);
+        const cities = [
+            { name: '建业', location: [32.0603, 118.7969], desc: '<div class="info-popup"><h3>建业 (今南京)</h3><h4>政治地位</h4><p>孙吴政权都城，江东地区的政治中心</p><h4>历史意义</h4><p>孙权于229年在此称帝，建立吴国，是三国时期的重要都城</p><p>凭借长江天险，成为抵御曹魏南侵的重要屏障</p></div>' },
+            { name: '九江', location: [29.7031, 116.0186], desc: '<div class="info-popup"><h3>九江</h3><h4>地理位置</h4><p>长江重要渡口和军事要地，连接江东西部与江南的交通要道</p><h4>历史意义</h4><p>三国时期是重要的军事据点，控制长江水道交通</p></div>' },
+            { name: '南昌', location: [28.6825, 115.8581], desc: '<div class="info-popup"><h3>南昌（豫章）</h3><h4>行政地位</h4><p>豫章郡治所，江西地区的政治经济中心</p><h4>历史意义</h4><p>三国时期属孙吴管辖，是长江中游的重要城市</p><p>控制赣江水道，是联系长江与岭南地区的重要节点</p></div>' },
+            { name: '苏州', location: [31.2989, 120.5853], desc: '<div class="info-popup"><h3>苏州（吴郡）</h3><h4>经济地位</h4><p>江东六郡之一，重要的经济文化中心</p><h4>历史意义</h4><p>孙吴政权的重要基地，经济发达，人口稠密</p><p>是江南地区重要的手工业和商业中心</p></div>' },
+            { name: '绍兴', location: [30.0303, 120.5657], desc: '<div class="info-popup"><h3>绍兴（会稽）</h3><h4>文化地位</h4><p>江东六郡之一，重要的政治文化中心</p><h4>历史意义</h4><p>三国时期文化发达，是江南地区的重要城市</p><p>拥有丰富的历史文化遗产</p></div>' },
+            { name: '武昌', location: [30.5436, 114.4025], desc: '<div class="info-popup"><h3>武昌</h3><h4>军事地位</h4><p>长江中游重要军事据点，孙吴政权的军事重镇</p><h4>历史意义</h4><p>控制长江中游水道，是吴国防御魏国的重要前沿阵地</p></div>' }
+        ];
 
-        // 九江 - 长江重要渡口
-        L.marker([29.7031, 116.0186], {
-            icon: L.divIcon({
-                className: 'city-marker',
-                html: `<div class="major-city">九江</div>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            })
-        }).addTo(regionLayer).bindPopup(`
-            <div class="info-popup">
-                <h3>九江</h3>
-                <h4>地理位置</h4>
-                <p>长江重要渡口和军事要地，连接江东西部与江南的交通要道</p>
-                <h4>历史意义</h4>
-                <p>三国时期是重要的军事据点，控制长江水道交通</p>
-            </div>
-        `);
+        cities.forEach(city => {
+            const marker = L.marker(city.location, {
+                icon: L.divIcon({
+                    className: 'city-marker',
+                    html: `<div class="major-city">${city.name}</div>`,
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                })
+            }).bindPopup(city.desc);
+            cityLayer.addLayer(marker);
+        });
 
-        // 南昌（豫章）- 江西中心
-        L.marker([28.6825, 115.8581], {
-            icon: L.divIcon({
-                className: 'city-marker',
-                html: `<div class="major-city">南昌</div>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            })
-        }).addTo(regionLayer).bindPopup(`
-            <div class="info-popup">
-                <h3>南昌（豫章）</h3>
-                <h4>行政地位</h4>
-                <p>豫章郡治所，江西地区的政治经济中心</p>
-                <h4>历史意义</h4>
-                <p>三国时期属孙吴管辖，是长江中游的重要城市</p>
-                <p>控制赣江水道，是联系长江与岭南地区的重要节点</p>
-            </div>
-        `);
-
-        // 苏州（吴郡）- 江东重要城市
-        L.marker([31.2989, 120.5853], {
-            icon: L.divIcon({
-                className: 'city-marker',
-                html: `<div class="major-city">苏州</div>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            })
-        }).addTo(regionLayer).bindPopup(`
-            <div class="info-popup">
-                <h3>苏州（吴郡）</h3>
-                <h4>经济地位</h4>
-                <p>江东六郡之一，重要的经济文化中心</p>
-                <h4>历史意义</h4>
-                <p>孙吴政权的重要基地，经济发达，人口稠密</p>
-                <p>是江南地区重要的手工业和商业中心</p>
-            </div>
-        `);
-
-        // 绍兴（会稽）- 江东重要城市
-        L.marker([30.0303, 120.5657], {
-            icon: L.divIcon({
-                className: 'city-marker',
-                html: `<div class="major-city">绍兴</div>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            })
-        }).addTo(regionLayer).bindPopup(`
-            <div class="info-popup">
-                <h3>绍兴（会稽）</h3>
-                <h4>文化地位</h4>
-                <p>江东六郡之一，重要的政治文化中心</p>
-                <h4>历史意义</h4>
-                <p>三国时期文化发达，是江南地区的重要城市</p>
-                <p>拥有丰富的历史文化遗产</p>
-            </div>
-        `);
-
-        // 武昌 - 长江重要军事据点
-        L.marker([30.5436, 114.4025], {
-            icon: L.divIcon({
-                className: 'city-marker',
-                html: `<div class="major-city">武昌</div>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            })
-        }).addTo(regionLayer).bindPopup(`
-            <div class="info-popup">
-                <h3>武昌</h3>
-                <h4>军事地位</h4>
-                <p>长江中游重要军事据点，孙吴政权的军事重镇</p>
-                <h4>历史意义</h4>
-                <p>控制长江中游水道，是吴国防御魏国的重要前沿阵地</p>
-            </div>
-        `);
-
-        // 添加文字说明
-        const mapCenter = map.getCenter();
-        L.marker([mapCenter.lat + 3.5, mapCenter.lng], {
-            icon: L.divIcon({
-                className: 'info-text',
-                html: `<div style="background-color: rgba(255, 255, 255, 0.9); color: #333; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">三国时期长江流域地理示意</div>`,
-                iconSize: [250, 50],
-                iconAnchor: [125, 25]
-            })
-        }).addTo(regionLayer);
+        // 将所有图层组添加到地图
+        jiangdongLayer.addTo(map);
+        jiangxiLayer.addTo(map);
+        jiangnanLayer.addTo(map);
+        riverLayer.addTo(map);
+        cityLayer.addTo(map);
 
         // 添加悬停效果
-        regionLayer.eachLayer(function(layer) {
-            if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
-                layer.on('mouseover', function (e) {
-                    this.setStyle({
-                        fillOpacity: 0.7,
-                        weight: 4
-                    });
-                    this.bringToFront();
+        [jiangdongPolygon, jiangxiPolygon, jiangnanPolygon, yangtzeRiver].forEach(layer => {
+            layer.on('mouseover', function (e) {
+                this.setStyle({
+                    fillOpacity: 0.7,
+                    weight: 10
                 });
+                this.bringToFront();
+            });
 
-                layer.on('mouseout', function (e) {
+            layer.on('mouseout', function (e) {
+                if (this instanceof L.Polygon) {
                     this.setStyle({
-                        fillOpacity: (this.options.fillColor === '#e74c3c') ? 0.5 :
-                                    (this.options.fillColor === '#3498db') ? 0.5 : 0.4,
-                        weight: (this instanceof L.Polyline) ? 8 :
-                               (this.options.fillColor === '#e74c3c') ? 3 :
-                               (this.options.fillColor === '#3498db') ? 3 : 2
+                        fillOpacity: (this.options.fillColor === '#e74c3c') ? 0.5 : 0.4,
+                        weight: (this.options.fillColor === '#e74c3c') ? 3 : 2
                     });
-                });
-            }
+                } else if (this instanceof L.Polyline) {
+                    this.setStyle({
+                        opacity: 0.7,
+                        weight: 8
+                    });
+                }
+            });
         });
+
+        // 添加图例点击切换功能
+        function setupLegendToggle() {
+            // 江东图例点击事件
+            const jiangdongLegend = document.getElementById('legend-jiangdong');
+            jiangdongLegend.addEventListener('click', function() {
+                if (map.hasLayer(jiangdongLayer)) {
+                    map.removeLayer(jiangdongLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(jiangdongLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+
+            // 江西图例点击事件
+            const jiangxiLegend = document.getElementById('legend-jiangxi');
+            jiangxiLegend.addEventListener('click', function() {
+                if (map.hasLayer(jiangxiLayer)) {
+                    map.removeLayer(jiangxiLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(jiangxiLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+
+            // 江南图例点击事件
+            const jiangnanLegend = document.getElementById('legend-jiangnan');
+            jiangnanLegend.addEventListener('click', function() {
+                if (map.hasLayer(jiangnanLayer)) {
+                    map.removeLayer(jiangnanLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(jiangnanLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+
+            // 长江图例点击事件
+            const riverLegend = document.getElementById('legend-river');
+            riverLegend.addEventListener('click', function() {
+                if (map.hasLayer(riverLayer)) {
+                    map.removeLayer(riverLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(riverLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+
+            // 城市图例点击事件
+            const cityLegend = document.getElementById('legend-city');
+            cityLegend.addEventListener('click', function() {
+                if (map.hasLayer(cityLayer)) {
+                    map.removeLayer(cityLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(cityLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+            
+            // 初始化图例状态样式
+            jiangdongLegend.style.textDecoration = 'none';
+            jiangxiLegend.style.textDecoration = 'none';
+            jiangnanLegend.style.textDecoration = 'none';
+            riverLegend.style.textDecoration = 'none';
+            cityLegend.style.textDecoration = 'none';
+        }
+
+        // 地图加载完成后设置图例功能
+        map.whenReady(setupLegendToggle);
     </script>
 </body>
 </html>

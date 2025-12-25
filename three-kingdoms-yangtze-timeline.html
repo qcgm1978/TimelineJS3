@@ -110,19 +110,19 @@
                 <div id="interactive-map"></div>
                 <div class="map-overlay">
                     <h4>地图图例</h4>
-                    <div class="legend-item">
+                    <div class="legend-item" id="legend-jiangdong-timeline" style="cursor: pointer;">
                         <div class="legend-color" style="background-color: rgba(231, 76, 60, 0.6);"></div>
                         <span>江东 (Dongjiang)</span>
                     </div>
-                    <div class="legend-item">
+                    <div class="legend-item" id="legend-jiangxi-timeline" style="cursor: pointer;">
                         <div class="legend-color" style="background-color: rgba(52, 152, 219, 0.6);"></div>
                         <span>江西 (Jiangxi)</span>
                     </div>
-                    <div class="legend-item">
+                    <div class="legend-item" id="legend-jiangnan-timeline" style="cursor: pointer;">
                         <div class="legend-color" style="background-color: rgba(46, 204, 113, 0.6);"></div>
                         <span>江南 (Jiangnan)</span>
                     </div>
-                    <div class="legend-item">
+                    <div class="legend-item" id="legend-river-timeline" style="cursor: pointer;">
                         <div class="legend-color" style="background-color: rgba(241, 196, 15, 0.8);"></div>
                         <span>长江水道</span>
                     </div>
@@ -140,8 +140,6 @@
     <script>
         // Initialize the map
         const map = L.map('interactive-map').setView([30.5, 118.5], 7);
-
-        // Add base tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
@@ -162,53 +160,56 @@
             [28.0, 114.0], [29.0, 115.0], [30.0, 116.0], [31.0, 117.0], [32.0, 118.0]
         ];
 
-        //长江河道坐标
+        //长江河道坐标（重点突出三国时期重要的江段）
         const yangtzeRiverPath = [
-            [32.0, 116.0], [31.8, 116.5], [31.6, 117.0], [31.4, 117.5], [31.2, 118.0], [31.0, 118.5], 
-            [30.8, 118.8], [30.6, 119.0], [30.4, 119.2], [30.2, 119.4], [30.0, 119.5], [29.8, 119.6], 
-            [29.6, 119.5], [29.4, 119.3], [29.2, 119.0], [29.0, 118.5], [28.8, 118.0], [28.6, 117.5], 
-            [28.4, 117.0], [28.2, 116.5], [28.0, 116.0], [27.8, 115.5], [27.6, 115.0], [27.4, 114.5], [27.0, 114.0]
+            [29.5, 112.0], [29.6, 112.5], [29.7, 113.0], [29.8, 113.5], [29.7, 114.0], 
+            [29.6, 114.5], [29.5, 115.0], [29.4, 115.5], [29.3, 116.0], [29.2, 116.5], 
+            [29.1, 117.0], [29.0, 117.5], [28.9, 118.0], [28.8, 118.5], [28.7, 119.0], 
+            [28.6, 119.5], [28.5, 120.0], [28.4, 120.5], [28.3, 121.0], [28.2, 121.5]
         ];
 
-        // Create region layer
-        const regionLayer = L.layerGroup().addTo(map);
+        // Create separate layer groups
+        const jiangdongLayer = L.layerGroup();
+        const jiangxiLayer = L.layerGroup();
+        const jiangnanLayer = L.layerGroup();
+        const riverLayer = L.layerGroup();
 
         // Add regions to map
-        L.polygon(jiangdongCoordinates, {
+        const jiangdongPolygon = L.polygon(jiangdongCoordinates, {
             color: '#c0392b',
             fillColor: '#e74c3c',
             fillOpacity: 0.5,
             weight: 3,
             opacity: 0.9
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div>
                 <h4>江东 (Dongjiang)</h4>
-                <p>长江下游以东地区，孙吴政权核心区域</p>
-                <p>包括江东六郡：吴郡、会稽郡、丹阳郡、豫章郡、庐陵郡、庐江郡</p>
+                <p>三国时期江东六郡区域，长江下游南岸，孙吴政权核心区域</p>
+                <p>包括吴郡、会稽郡、丹阳郡、豫章郡、庐陵郡、庐江郡</p>
             </div>
         `);
 
-        L.polygon(jiangxiCoordinates, {
+        const jiangxiPolygon = L.polygon(jiangxiCoordinates, {
             color: '#2980b9',
             fillColor: '#3498db',
             fillOpacity: 0.5,
             weight: 3,
             opacity: 0.9
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div>
                 <h4>江西 (Jiangxi)</h4>
-                <p>长江以西、赣江流域为中心的区域</p>
-                <p>主要包括豫章郡、庐陵郡等</p>
+                <p>长江中下游西岸、赣江流域为中心的区域</p>
+                <p>主要包括豫章郡、庐陵郡等，三国时属孙吴管辖</p>
             </div>
         `);
 
-        L.polygon(jiangnanCoordinates, {
+        const jiangnanPolygon = L.polygon(jiangnanCoordinates, {
             color: '#27ae60',
             fillColor: '#2ecc71',
             fillOpacity: 0.4,
             weight: 2,
             opacity: 0.8
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div>
                 <h4>江南 (Jiangnan)</h4>
                 <p>长江中下游以南的广阔区域</p>
@@ -217,17 +218,29 @@
         `);
 
         // Draw Yangtze River
-        L.polyline(yangtzeRiverPath, {
+        const yangtzeRiver = L.polyline(yangtzeRiverPath, {
             color: '#f39c12',
             weight: 8,
             opacity: 0.7,
             dashArray: '10, 8'
-        }).addTo(regionLayer).bindPopup(`
+        }).bindPopup(`
             <div>
                 <h4>长江水道</h4>
                 <p>中国第一大河，三国时期魏吴对峙的天然分界线</p>
             </div>
         `);
+
+        // Add layers to their respective groups
+        jiangdongLayer.addLayer(jiangdongPolygon);
+        jiangxiLayer.addLayer(jiangxiPolygon);
+        jiangnanLayer.addLayer(jiangnanPolygon);
+        riverLayer.addLayer(yangtzeRiver);
+
+        // Add all layer groups to map
+        jiangdongLayer.addTo(map);
+        jiangxiLayer.addTo(map);
+        jiangnanLayer.addTo(map);
+        riverLayer.addTo(map);
 
         // Add important cities
         const cities = [
@@ -239,13 +252,106 @@
         ];
 
         cities.forEach(city => {
-            L.marker(city.location).addTo(regionLayer).bindPopup(`
+            L.marker(city.location).addTo(map).bindPopup(`
                 <div>
                     <h4>${city.name}</h4>
                     <p>${city.desc}</p>
                 </div>
             `);
         });
+
+        // Add hover effects
+        [jiangdongPolygon, jiangxiPolygon, jiangnanPolygon, yangtzeRiver].forEach(layer => {
+            layer.on('mouseover', function (e) {
+                this.setStyle({
+                    fillOpacity: 0.7,
+                    weight: 10
+                });
+                this.bringToFront();
+            });
+
+            layer.on('mouseout', function (e) {
+                if (this instanceof L.Polygon) {
+                    this.setStyle({
+                        fillOpacity: (this.options.fillColor === '#e74c3c') ? 0.5 : 0.4,
+                        weight: (this.options.fillColor === '#e74c3c') ? 3 : 2
+                    });
+                } else if (this instanceof L.Polyline) {
+                    this.setStyle({
+                        opacity: 0.7,
+                        weight: 8
+                    });
+                }
+            });
+        });
+
+        // Add legend toggle functionality
+        function setupTimelineLegendToggle() {
+            // 江东图例点击事件
+            const jiangdongLegend = document.getElementById('legend-jiangdong-timeline');
+            jiangdongLegend.addEventListener('click', function() {
+                if (map.hasLayer(jiangdongLayer)) {
+                    map.removeLayer(jiangdongLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(jiangdongLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+
+            // 江西图例点击事件
+            const jiangxiLegend = document.getElementById('legend-jiangxi-timeline');
+            jiangxiLegend.addEventListener('click', function() {
+                if (map.hasLayer(jiangxiLayer)) {
+                    map.removeLayer(jiangxiLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(jiangxiLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+
+            // 江南图例点击事件
+            const jiangnanLegend = document.getElementById('legend-jiangnan-timeline');
+            jiangnanLegend.addEventListener('click', function() {
+                if (map.hasLayer(jiangnanLayer)) {
+                    map.removeLayer(jiangnanLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(jiangnanLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+
+            // 长江图例点击事件
+            const riverLegend = document.getElementById('legend-river-timeline');
+            riverLegend.addEventListener('click', function() {
+                if (map.hasLayer(riverLayer)) {
+                    map.removeLayer(riverLayer);
+                    this.style.opacity = '0.5';
+                    this.style.textDecoration = 'line-through';
+                } else {
+                    map.addLayer(riverLayer);
+                    this.style.opacity = '1';
+                    this.style.textDecoration = 'none';
+                }
+            });
+            
+            // 初始化图例状态样式
+            jiangdongLegend.style.textDecoration = 'none';
+            jiangxiLegend.style.textDecoration = 'none';
+            jiangnanLegend.style.textDecoration = 'none';
+            riverLegend.style.textDecoration = 'none';
+        }
+
+        // Set up legend toggle after map is ready
+        map.whenReady(setupTimelineLegendToggle);
 
         // Timeline data
         const timelineData = {
