@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国历史地理地图</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #map-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        
+        .controls button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        #dataSelect {
+            margin: 5px;
+            padding: 5px;
+        }
+        
+        .info-popup h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .info-popup h4 {
+            margin: 10px 0 5px 0;
+            color: #666;
+        }
+        
+        .map-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            max-width: 300px;
+        }
+        
+        .legend-item {
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        .region-label {
+            font-weight: bold;
+            color: #000;
+            font-size: 16px;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+        }
+        
+        .modern-admin-label {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 14px;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.9);
+            background-color: rgba(255,255,255,0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .passage-label {
+            font-weight: bold;
+            color: #8e44ad;
+            font-size: 14px;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <div id="map"></div>
+        
+        <div class="controls">
+            <button onclick="mapController.zoomIn()">放大</button>
+            <button onclick="mapController.zoomOut()">缩小</button>
+            <button onclick="mapController.centerMap()">居中</button>
+            <button onclick="mapController.changeMapType()">切换地图</button>
+            <select id="dataSelect" onchange="mapController.changeDataFile()">
+                <option value="geo-data.js">完整地理数据</option>
+                <option value="custom-geo-data.js">自定义地理数据</option>
+            </select>
+        </div>
+        
+        <div class="map-info">
+            <h3>地图说明</h3>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: rgba(46, 204, 113, 0.7);"></span>
+                <strong>自然地理单元</strong>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: rgba(52, 152, 219, 0.7);"></span>
+                <strong>历史文化区域</strong>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background-color: rgba(142, 68, 173, 0.7);"></span>
+                <strong>关键地理通道</strong>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 地图控制器类
+        class MapController {
+            constructor() {
+                this.map = null;
+                this.currentMapType = 1;
+                this.currentData = null;
+                this.layers = {
+                    natural: null,
+                    historical: null,
+                    passage: null,
+                    modernAdmin: null
+                };
+                this.mapTypes = [
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }),
+                    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                    }),
+                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    }),
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    })
+                ];
+                
+                this.modernAdminRegions = [
+                    { name: '北京', center: [39.9042, 116.4074] },
+                    { name: '上海', center: [31.2304, 121.4737] },
+                    { name: '广州', center: [23.1291, 113.2644] },
+                    { name: '深圳', center: [22.5431, 114.0579] },
+                    { name: '杭州', center: [30.2741, 120.1551] },
+                    { name: '南京', center: [32.0603, 118.7969] },
+                    { name: '武汉', center: [30.5928, 114.3055] },
+                    { name: '成都', center: [30.5728, 104.0668] },
+                    { name: '重庆', center: [29.5630, 106.5516] },
+                    { name: '西安', center: [34.3416, 108.9398] },
+                    { name: '天津', center: [39.3434, 117.3616] },
+                    { name: '苏州', center: [31.2989, 120.5853] },
+                    { name: '郑州', center: [34.7466, 113.6254] },
+                    { name: '长沙', center: [28.2282, 112.9388] },
+                    { name: '沈阳', center: [41.8056, 123.4315] },
+                    { name: '青岛', center: [36.0671, 120.3826] },
+                    { name: '济南', center: [36.6512, 117.1201] },
+                    { name: '哈尔滨', center: [45.8038, 126.5349] },
+                    { name: '福州', center: [26.0745, 119.2965] },
+                    { name: '昆明', center: [24.8864, 102.8329] },
+                    { name: '大连', center: [38.9140, 121.6147] },
+                    { name: '厦门', center: [24.4798, 118.0894] },
+                    { name: '合肥', center: [31.8612, 117.2831] },
+                    { name: '南昌', center: [28.6825, 115.8581] },
+                    { name: '南宁', center: [22.8170, 108.3665] },
+                    { name: '石家庄', center: [38.0428, 114.5149] },
+                    { name: '太原', center: [37.8716, 112.5489] },
+                    { name: '贵阳', center: [26.5972, 106.7078] },
+                    { name: '兰州', center: [36.0611, 103.8343] },
+                    { name: '乌鲁木齐', center: [43.8256, 87.6168] },
+                    { name: '呼和浩特', center: [40.8183, 111.6708] },
+                    { name: '银川', center: [38.4680, 106.2329] },
+                    { name: '西宁', center: [36.6232, 101.7782] },
+                    { name: '拉萨', center: [29.6549, 91.1761] }
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.map = L.map('map').setView([35.8617, 104.1954], 4);
+                
+                this.mapTypes.forEach((layer, index) => {
+                    layer.on('tileerror', function(error) {
+                        console.error(`瓦片图层 ${index} 加载错误:`, error);
+                    });
+                });
+                
+                this.mapTypes[this.currentMapType].addTo(this.map);
+                
+                this.initializeLayers();
+                this.loadInitialData();
+            }
+            
+            initializeLayers() {
+                this.layers.natural = L.layerGroup().addTo(this.map);
+                this.layers.historical = L.layerGroup().addTo(this.map);
+                this.layers.passage = L.layerGroup().addTo(this.map);
+                this.layers.modernAdmin = L.layerGroup().addTo(this.map);
+            }
+            
+            async loadInitialData() {
+                await this.loadDataFile('geo-data.js');
+            }
+            
+            async changeDataFile() {
+                const selectElement = document.getElementById('dataSelect');
+                const selectedFile = selectElement.value;
+                await this.loadDataFile(selectedFile);
+            }
+            
+            loadDataFile(filePath) {
+                return new Promise((resolve, reject) => {
+                    // 移除旧的脚本标签
+                    const existingScripts = document.querySelectorAll('script[src*="geo-data"], script[src*="custom-geo-data"]');
+                    existingScripts.forEach(script => script.remove());
+                    
+                    // 创建新的脚本标签
+                    const script = document.createElement('script');
+                    script.src = filePath;
+                    script.onload = () => {
+                        this.clearAllLayers();
+                        this.currentData = {
+                            naturalRegions: window.naturalRegions || [],
+                            historicalRegions: window.historicalRegions || [],
+                            passages: window.passages || []
+                        };
+                        
+                        // 清理全局变量
+                        delete window.naturalRegions;
+                        delete window.historicalRegions;
+                        delete window.passages;
+                        
+                        this.renderAllData();
+                        resolve();
+                    };
+                    script.onerror = (error) => {
+                        console.error('数据文件加载失败:', error);
+                        reject(error);
+                    };
+                    document.body.appendChild(script);
+                });
+            }
+            
+            clearAllLayers() {
+                for (const layerName in this.layers) {
+                    if (this.layers[layerName]) {
+                        this.layers[layerName].clearLayers();
+                    }
+                }
+            }
+            
+            renderAllData() {
+                this.renderNaturalRegions();
+                this.renderHistoricalRegions();
+                this.renderPassages();
+            }
+            
+            renderNaturalRegions() {
+                if (!this.currentData.naturalRegions || this.currentData.naturalRegions.length === 0) {
+                    return;
+                }
+                
+                this.currentData.naturalRegions.forEach(region => {
+                    const polygon = L.polygon(region.coordinates, {
+                        color: '#27ae60',
+                        fillColor: '#2ecc71',
+                        fillOpacity: 0.7,
+                        weight: 3,
+                        opacity: 0.9,
+                        dashArray: '',
+                        smoothFactor: 1
+                    }).addTo(this.layers.natural);
+                    
+                    polygon.bindPopup(`
+                        <div class="info-popup">
+                            <h3>${region.name}</h3>
+                            <h4>自然地理单元</h4>
+                            <p>${region.description}</p>
+                        </div>
+                    `);
+                    
+                    this.addRegionLabel(region, this.layers.natural, 'region-label');
+                    
+                    this.addHoverEffect(polygon, '#229954', '#27ae60');
+                });
+            }
+            
+            renderHistoricalRegions() {
+                if (!this.currentData.historicalRegions || this.currentData.historicalRegions.length === 0) {
+                    return;
+                }
+                
+                this.currentData.historicalRegions.forEach(region => {
+                    const polygon = L.polygon(region.coordinates, {
+                        color: '#2980b9',
+                        fillColor: '#3498db',
+                        fillOpacity: 0.7,
+                        weight: 3,
+                        opacity: 0.9,
+                        dashArray: '',
+                        smoothFactor: 1
+                    }).addTo(this.layers.historical);
+                    
+                    polygon.bindPopup(`
+                        <div class="info-popup">
+                            <h3>${region.name}</h3>
+                            <h4>历史文化区域</h4>
+                            <p>${region.description}</p>
+                        </div>
+                    `);
+                    
+                    this.addRegionLabel(region, this.layers.historical, 'region-label');
+                    
+                    this.addHoverEffect(polygon, '#21618c', '#2980b9');
+                });
+            }
+            
+            renderPassages() {
+                if (!this.currentData.passages || this.currentData.passages.length === 0) {
+                    return;
+                }
+                
+                this.currentData.passages.forEach(passage => {
+                    const polygon = L.polygon(passage.coordinates, {
+                        color: '#7d3c98',
+                        fillColor: '#8e44ad',
+                        fillOpacity: 0.7,
+                        weight: 3,
+                        opacity: 0.9,
+                        dashArray: '',
+                        smoothFactor: 1
+                    }).addTo(this.layers.passage);
+                    
+                    polygon.bindPopup(`
+                        <div class="info-popup">
+                            <h3>${passage.name}</h3>
+                            <h4>关键地理通道</h4>
+                            <p>${passage.description}</p>
+                        </div>
+                    `);
+                    
+                    this.addRegionLabel(passage, this.layers.passage, 'passage-label');
+                    
+                    this.addHoverEffect(polygon, '#6c3483', '#7d3c98');
+                });
+            }
+            
+            addRegionLabel(region, layer, className) {
+                const polygonLatLngs = region.coordinates.map(coord => L.latLng(coord));
+                const bounds = L.latLngBounds(polygonLatLngs);
+                const center = bounds.getCenter();
+                
+                if (!L.polygon(polygonLatLngs).getBounds().contains(center)) {
+                    const points = region.coordinates;
+                    center.lat = points[0][0];
+                    center.lng = points[0][1];
+                }
+                
+                L.marker(center, {
+                    icon: L.divIcon({
+                        className: className,
+                        html: `<div>${region.name}</div>`,
+                        iconSize: [0, 0],
+                        iconAnchor: [0, 0]
+                    })
+                }).addTo(layer);
+            }
+            
+            addHoverEffect(polygon, hoverColor, originalColor) {
+                polygon.on('mouseover', function () {
+                    this.setStyle({
+                        fillOpacity: 0.9,
+                        weight: 4,
+                        color: hoverColor
+                    });
+                    this.bringToFront();
+                });
+                
+                polygon.on('mouseout', function () {
+                    this.setStyle({
+                        fillOpacity: 0.7,
+                        weight: 3,
+                        color: originalColor
+                    });
+                });
+            }
+            
+            changeMapType() {
+                this.currentMapType = (this.currentMapType + 1) % this.mapTypes.length;
+                const prevMapType = (this.currentMapType - 1 + this.mapTypes.length) % this.mapTypes.length;
+                this.map.removeLayer(this.mapTypes[prevMapType]);
+                this.mapTypes[this.currentMapType].addTo(this.map);
+            }
+            
+            zoomIn() {
+                this.map.zoomIn();
+            }
+            
+            zoomOut() {
+                this.map.zoomOut();
+            }
+            
+            centerMap() {
+                this.map.setView([35.8617, 104.1954], 4);
+            }
+        }
+        
+        // 初始化地图控制器
+        let mapController;
+        window.onload = function() {
+            mapController = new MapController();
+        };
+    </script>
+</body>
+</html>

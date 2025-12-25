@@ -178,6 +178,10 @@
             <div id="map"></div>
             
             <div class="controls">
+                <select id="dataSelect" onchange="changeDataFile()" style="padding: 10px 18px; border-radius: 5px; border: 1px solid #ddd; font-size: 14px; margin-right: 10px;">
+                    <option value="geo-data.js" selected>默认地理数据</option>
+                    <option value="custom-geo-data.js">自定义地理数据</option>
+                </select>
                 <button onclick="toggleLayer('natural')" class="active">自然地理单元</button>
                 <button onclick="toggleLayer('historical')" class="active">历史文化区域</button>
                 <button onclick="toggleLayer('passage')" class="active">地理通道</button>
@@ -235,6 +239,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="geo-data.js"></script>
     <script>
         let map;
         let currentMapType = 1;
@@ -258,76 +263,7 @@
             })
         ];
 
-        const naturalRegions = [
-            {
-                name: '蒙古高原',
-                coordinates: [[43.6109, 108.2500], [48.1112, 112.2103], [46.6857, 117.7572], [42.6857, 114.7572], [43.6109, 108.2500]],
-                description: '亚洲中部内陆高原，是中国重要的草原牧区和生态屏障。'
-            },
-            {
-                name: '东北平原',
-                coordinates: [[43.8350, 122.4148], [47.4148, 125.4148], [46.4148, 130.4148], [41.4148, 127.4148], [43.8350, 122.4148]],
-                description: '中国最大的平原，土壤肥沃，是重要的粮食生产基地。'
-            },
-            {
-                name: '青藏高原',
-                coordinates: [[30.5728, 88.6109], [35.5728, 92.6109], [33.5728, 100.6109], [27.5728, 98.6109], [30.5728, 88.6109]],
-                description: '世界屋脊，平均海拔4000米以上，是长江、黄河等大江大河的发源地。'
-            },
-            {
-                name: '云贵高原',
-                coordinates: [[24.8864, 102.8864], [28.8864, 106.8864], [25.8864, 110.8864], [22.8864, 108.8864], [24.8864, 102.8864]],
-                description: '地形崎岖，喀斯特地貌发育，生物多样性丰富。'
-            }
-        ];
 
-        const historicalRegions = [
-            {
-                name: '西域',
-                coordinates: [[41.8056, 85.8056], [43.8056, 90.8056], [40.8056, 95.8056], [38.8056, 92.8056], [41.8056, 85.8056]],
-                description: '今新疆地区，古代丝绸之路的重要组成部分，是中原与中亚交流的重要通道。',
-                history: '西域三十六国曾在此繁衍生息，西汉时纳入中国版图，设立西域都护府。'
-            },
-            {
-                name: '河西走廊',
-                coordinates: [[37.8056, 94.8056], [39.8056, 98.8056], [36.8056, 102.8056], [34.8056, 98.8056], [37.8056, 94.8056]],
-                description: '连接中原与西域的咽喉要道，古代丝绸之路的关键路段。',
-                history: '汉武帝时期打通河西走廊，设立武威、张掖、酒泉、敦煌四郡，成为中原与西域交流的枢纽。'
-            },
-            {
-                name: '关中',
-                coordinates: [[34.2658, 107.2658], [36.2658, 109.2658], [34.2658, 111.2658], [33.2658, 109.2658], [34.2658, 107.2658]],
-                description: '今陕西中部，渭河平原，古代多个王朝的建都之地。',
-                history: '周、秦、汉、唐等王朝均在此建都，是中国古代政治、经济、文化中心之一。'
-            },
-            {
-                name: '巴蜀',
-                coordinates: [[28.5728, 102.5728], [32.5728, 106.5728], [30.5728, 108.5728], [27.5728, 105.5728], [28.5728, 102.5728]],
-                description: '今四川盆地，依托都江堰水利工程，成为历史上的"天府之国"。',
-                history: '诸葛亮曾称其为"沃野千里，天府之土"，是重要的农业与战略区域。'
-            },
-            {
-                name: '中原',
-                coordinates: [[34.7466, 112.7466], [36.7466, 114.7466], [34.7466, 116.7466], [32.7466, 114.7466], [34.7466, 112.7466]],
-                description: '今河南一带，华夏文明的核心发源地之一。',
-                history: '长期作为古代王朝的政治、经济中心，是"逐鹿中原"的战略要地。'
-            },
-            {
-                name: '江南',
-                coordinates: [[29.2304, 118.2304], [32.2304, 120.2304], [30.2304, 122.2304], [27.2304, 120.2304], [29.2304, 118.2304]],
-                description: '今长江中下游地区，自唐宋后逐渐发展为经济重心。',
-                history: '宋代时"苏湖熟，天下足"，明清时期成为中国经济最发达的地区，兼具农业、商业与文化优势。'
-            }
-        ];
-
-        const passages = [
-            {
-                name: '河西走廊',
-                coordinates: [[38.0, 95.0], [39.0, 99.0], [37.0, 102.0], [35.0, 99.0], [38.0, 95.0]],
-                description: '连接中原与西域的关键通道，是古代丝绸之路的咽喉要道。',
-                history: '汉武帝时期打通，成为中原王朝控制西域的战略要地，促进了东西方文化交流。'
-            }
-        ];
 
         // 现代城市数据
         const modernAdminRegions = [
@@ -414,66 +350,68 @@
         }
 
         function addNaturalRegions() {
-            naturalRegions.forEach(region => {
-                const polygon = L.polygon(region.coordinates, {
-                    color: '#27ae60',
-                    fillColor: '#2ecc71',
-                    fillOpacity: 0.7,
-                    weight: 3,
-                    opacity: 0.9,
-                    dashArray: '',
-                    smoothFactor: 1
-                }).addTo(naturalLayer);
-                
-                polygon.bindPopup(`
-                    <div class="info-popup">
-                        <h3>${region.name}</h3>
-                        <h4>自然地理单元</h4>
-                        <p>${region.description}</p>
-                    </div>
-                `);
-                
-                // 添加区域名称标签
-                const polygonLatLngs = region.coordinates.map(coord => L.latLng(coord));
-                const bounds = L.latLngBounds(polygonLatLngs);
-                const center = bounds.getCenter();
-                
-                // 确保中心点在多边形内部
-                if (!L.polygon(polygonLatLngs).getBounds().contains(center)) {
-                    // 如果中心点不在多边形内，尝试使用其他方法获取内部点
-                    const points = region.coordinates;
-                    // 使用第一个点作为备选
-                    center.lat = points[0][0];
-                    center.lng = points[0][1];
-                }
-                
-                L.marker(center, {
-                    icon: L.divIcon({
-                        className: 'region-label',
-                        html: `<div style="font-weight: bold; color: #000; font-size: 16px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-shadow: 0 1px 3px rgba(255,255,255,0.8);">${region.name}</div>`,
-                        iconSize: [0, 0],
-                        iconAnchor: [0, 0]
-                    })
-                }).addTo(naturalLayer);
-                
-                // 添加悬停效果
-                polygon.on('mouseover', function (e) {
-                    this.setStyle({
-                        fillOpacity: 0.9,
-                        weight: 4,
-                        color: '#229954'
-                    });
-                    this.bringToFront();
-                });
-                
-                polygon.on('mouseout', function (e) {
-                    this.setStyle({
+            if (typeof naturalRegions !== 'undefined' && naturalRegions.length > 0) {
+                naturalRegions.forEach(region => {
+                    const polygon = L.polygon(region.coordinates, {
+                        color: '#27ae60',
+                        fillColor: '#2ecc71',
                         fillOpacity: 0.7,
                         weight: 3,
-                        color: '#27ae60'
+                        opacity: 0.9,
+                        dashArray: '',
+                        smoothFactor: 1
+                    }).addTo(naturalLayer);
+                    
+                    polygon.bindPopup(`
+                        <div class="info-popup">
+                            <h3>${region.name}</h3>
+                            <h4>自然地理单元</h4>
+                            <p>${region.description}</p>
+                        </div>
+                    `);
+                    
+                    // 添加区域名称标签
+                    const polygonLatLngs = region.coordinates.map(coord => L.latLng(coord));
+                    const bounds = L.latLngBounds(polygonLatLngs);
+                    const center = bounds.getCenter();
+                    
+                    // 确保中心点在多边形内部
+                    if (!L.polygon(polygonLatLngs).getBounds().contains(center)) {
+                        // 如果中心点不在多边形内，尝试使用其他方法获取内部点
+                        const points = region.coordinates;
+                        // 使用第一个点作为备选
+                        center.lat = points[0][0];
+                        center.lng = points[0][1];
+                    }
+                    
+                    L.marker(center, {
+                        icon: L.divIcon({
+                            className: 'region-label',
+                            html: `<div style="font-weight: bold; color: #000; font-size: 16px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-shadow: 0 1px 3px rgba(255,255,255,0.8);">${region.name}</div>`,
+                            iconSize: [0, 0],
+                            iconAnchor: [0, 0]
+                        })
+                    }).addTo(naturalLayer);
+                    
+                    // 添加悬停效果
+                    polygon.on('mouseover', function (e) {
+                        this.setStyle({
+                            fillOpacity: 0.9,
+                            weight: 4,
+                            color: '#229954'
+                        });
+                        this.bringToFront();
+                    });
+                    
+                    polygon.on('mouseout', function (e) {
+                        this.setStyle({
+                            fillOpacity: 0.7,
+                            weight: 3,
+                            color: '#27ae60'
+                        });
                     });
                 });
-            });
+            }
         }
 
         function addHistoricalRegions() {
@@ -542,51 +480,53 @@
         }
 
         function addPassages() {
-            passages.forEach(passage => {
-                const polygon = L.polygon(passage.coordinates, {
-                    color: '#c0392b',
-                    fillColor: '#e74c3c',
-                    fillOpacity: 0.85,
-                    weight: 4,
-                    opacity: 1,
-                    dashArray: '5, 5',
-                    lineJoin: 'round',
-                    lineCap: 'round'
-                }).addTo(passageLayer);
-                
-                polygon.bindPopup(`
-                    <div class="info-popup">
-                        <h3>${passage.name}</h3>
-                        <h4>关键地理通道</h4>
-                        <p>${passage.description}</p>
-                        <h4>历史意义</h4>
-                        <p>${passage.history}</p>
-                    </div>
-                `);
-                
-                // 通道名称标签已在历史区域中显示，避免重复渲染
-                // 地理通道只显示多边形，不显示重复标签
-                
-                // 添加悬停效果
-                polygon.on('mouseover', function (e) {
-                    this.setStyle({
-                        fillOpacity: 0.95,
-                        weight: 5,
-                        color: '#a93226',
-                        dashArray: '3, 3'
-                    });
-                    this.bringToFront();
-                });
-                
-                polygon.on('mouseout', function (e) {
-                    this.setStyle({
+            if (typeof passages !== 'undefined' && passages.length > 0) {
+                passages.forEach(passage => {
+                    const polygon = L.polygon(passage.coordinates, {
+                        color: '#c0392b',
+                        fillColor: '#e74c3c',
                         fillOpacity: 0.85,
                         weight: 4,
-                        color: '#c0392b',
-                        dashArray: '5, 5'
+                        opacity: 1,
+                        dashArray: '5, 5',
+                        lineJoin: 'round',
+                        lineCap: 'round'
+                    }).addTo(passageLayer);
+                    
+                    polygon.bindPopup(`
+                        <div class="info-popup">
+                            <h3>${passage.name}</h3>
+                            <h4>关键地理通道</h4>
+                            <p>${passage.description}</p>
+                            <h4>历史意义</h4>
+                            <p>${passage.history}</p>
+                        </div>
+                    `);
+                    
+                    // 通道名称标签已在历史区域中显示，避免重复渲染
+                    // 地理通道只显示多边形，不显示重复标签
+                    
+                    // 添加悬停效果
+                    polygon.on('mouseover', function (e) {
+                        this.setStyle({
+                            fillOpacity: 0.95,
+                            weight: 5,
+                            color: '#a93226',
+                            dashArray: '3, 3'
+                        });
+                        this.bringToFront();
+                    });
+                    
+                    polygon.on('mouseout', function (e) {
+                        this.setStyle({
+                            fillOpacity: 0.85,
+                            weight: 4,
+                            color: '#c0392b',
+                            dashArray: '5, 5'
+                        });
                     });
                 });
-            });
+            }
         }
 
         function toggleLayer(layerType) {
@@ -630,6 +570,85 @@
 
         function centerMap() {
             map.setView([35.8617, 104.1954], 4);
+        }
+
+        function changeDataFile() {
+            // 获取选择的文件路径
+            const selectElement = document.getElementById('dataSelect');
+            const selectedFile = selectElement.value;
+            
+            // 删除可能存在的全局变量，确保切换时不会保留旧数据
+            if (typeof window.naturalRegions !== 'undefined') {
+                delete window.naturalRegions;
+            }
+            if (typeof window.historicalRegions !== 'undefined') {
+                delete window.historicalRegions;
+            }
+            if (typeof window.passages !== 'undefined') {
+                delete window.passages;
+            }
+            if (typeof window.modernAdminRegions !== 'undefined') {
+                delete window.modernAdminRegions;
+            }
+            
+            // 移除所有可能的地理数据脚本标签
+            const existingScripts = document.querySelectorAll('script[src*="geo-data"], script[src*="custom-geo-data"]');
+            existingScripts.forEach(script => script.remove());
+            
+            // 创建一个新的脚本标签，指向选择的文件
+            const script = document.createElement('script');
+            script.src = selectedFile;
+            script.onload = function() {
+                // 脚本加载完成后，重新加载地图数据
+                reloadMapData();
+            };
+            document.body.appendChild(script);
+        }
+
+        function reloadMapData() {
+            // 1. 彻底销毁当前地图实例
+            if (map) {
+                map.remove();
+                map = null;
+            }
+            
+            // 2. 清理所有相关的DOM元素
+            const mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                mapContainer.innerHTML = '';
+            }
+            
+            // 3. 重新初始化地图
+            map = L.map('map').setView([35.8617, 104.1954], 4);
+            
+            // 4. 添加当前地图类型
+            mapTypes.forEach((layer, index) => {
+                layer.on('tileerror', function(error) {
+                    console.error(`瓦片图层 ${index} 加载错误:`, error);
+                });
+            });
+            mapTypes[currentMapType].addTo(map);
+            
+            // 5. 重新创建所有图层对象
+            naturalLayer = L.layerGroup();
+            historicalLayer = L.layerGroup();
+            passageLayer = L.layerGroup();
+            modernAdminLayer = L.layerGroup();
+            
+            // 6. 重新加载所有数据
+            addNaturalRegions();
+            addHistoricalRegions();
+            addPassages();
+            
+            // 7. 将新图层添加到地图
+            naturalLayer.addTo(map);
+            historicalLayer.addTo(map);
+            passageLayer.addTo(map);
+            
+            // 8. 触发地图resize事件，确保地图正确适应容器尺寸
+            setTimeout(function() {
+                map.invalidateSize();
+            }, 100);
         }
 
         function changeMapType() {

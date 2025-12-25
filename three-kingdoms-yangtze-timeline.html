@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三国时期长江流域历史时间线</title>
+    <!-- TimelineJS3 CSS -->
+    <link rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .content-section {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 25px;
+        }
+        #timeline-map-container {
+            height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-size: 14px;
+            max-width: 300px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .info-card {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #3498db;
+        }
+        .info-card h4 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .info-card p {
+            margin: 5px 0;
+        }
+        #timeline-embed {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>三国时期长江流域历史时间线</h1>
+        <div class="subtitle">江东、江西、江南区域演变</div>
+
+        <div class="content-section">
+            <div class="info-card">
+                <h4>历史背景</h4>
+                <p>• 三国时期（220-280年），长江流域是魏蜀吴三国争夺的重要区域</p>
+                <p>• 孙吴政权据守江东，以长江为天险，与曹魏对峙</p>
+                <p>• 江东六郡：吴郡、会稽郡、丹阳郡、豫章郡、庐陵郡、庐江郡</p>
+                <p>• 长江在此时期具有重要的军事战略意义</p>
+            </div>
+
+            <h3>三国时期长江流域地理图</h3>
+            <div id="timeline-map-container">
+                <div id="interactive-map"></div>
+                <div class="map-overlay">
+                    <h4>地图图例</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: rgba(231, 76, 60, 0.6);"></div>
+                        <span>江东 (Dongjiang)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: rgba(52, 152, 219, 0.6);"></div>
+                        <span>江西 (Jiangxi)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: rgba(46, 204, 113, 0.6);"></div>
+                        <span>江南 (Jiangnan)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: rgba(241, 196, 15, 0.8);"></div>
+                        <span>长江水道</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>历史时间线</h3>
+            <div id="timeline-embed"></div>
+        </div>
+    </div>
+
+    <!-- Load TimelineJS3 -->
+    <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('interactive-map').setView([30.5, 118.5], 7);
+
+        // Add base tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Define region coordinates
+        const jiangdongCoordinates = [
+            [32.0, 118.0], [32.0, 122.0], [30.0, 122.0], [30.0, 121.0], [29.5, 120.5], [29.0, 120.0], 
+            [28.5, 119.0], [28.0, 118.0], [30.0, 117.0], [31.0, 117.0], [32.0, 118.0]
+        ];
+
+        const jiangxiCoordinates = [
+            [29.0, 115.0], [30.0, 117.0], [27.0, 117.0], [26.0, 116.0], [26.0, 114.0], [28.0, 114.0], [29.0, 115.0]
+        ];
+
+        const jiangnanCoordinates = [
+            [32.0, 118.0], [31.5, 119.0], [31.0, 120.0], [30.5, 120.5], [30.0, 120.0], [29.5, 119.5], 
+            [29.0, 119.0], [28.5, 118.0], [28.0, 117.0], [27.5, 116.0], [27.0, 115.0], [27.0, 114.0], 
+            [28.0, 114.0], [29.0, 115.0], [30.0, 116.0], [31.0, 117.0], [32.0, 118.0]
+        ];
+
+        //长江河道坐标
+        const yangtzeRiverPath = [
+            [32.0, 116.0], [31.8, 116.5], [31.6, 117.0], [31.4, 117.5], [31.2, 118.0], [31.0, 118.5], 
+            [30.8, 118.8], [30.6, 119.0], [30.4, 119.2], [30.2, 119.4], [30.0, 119.5], [29.8, 119.6], 
+            [29.6, 119.5], [29.4, 119.3], [29.2, 119.0], [29.0, 118.5], [28.8, 118.0], [28.6, 117.5], 
+            [28.4, 117.0], [28.2, 116.5], [28.0, 116.0], [27.8, 115.5], [27.6, 115.0], [27.4, 114.5], [27.0, 114.0]
+        ];
+
+        // Create region layer
+        const regionLayer = L.layerGroup().addTo(map);
+
+        // Add regions to map
+        L.polygon(jiangdongCoordinates, {
+            color: '#c0392b',
+            fillColor: '#e74c3c',
+            fillOpacity: 0.5,
+            weight: 3,
+            opacity: 0.9
+        }).addTo(regionLayer).bindPopup(`
+            <div>
+                <h4>江东 (Dongjiang)</h4>
+                <p>长江下游以东地区，孙吴政权核心区域</p>
+                <p>包括江东六郡：吴郡、会稽郡、丹阳郡、豫章郡、庐陵郡、庐江郡</p>
+            </div>
+        `);
+
+        L.polygon(jiangxiCoordinates, {
+            color: '#2980b9',
+            fillColor: '#3498db',
+            fillOpacity: 0.5,
+            weight: 3,
+            opacity: 0.9
+        }).addTo(regionLayer).bindPopup(`
+            <div>
+                <h4>江西 (Jiangxi)</h4>
+                <p>长江以西、赣江流域为中心的区域</p>
+                <p>主要包括豫章郡、庐陵郡等</p>
+            </div>
+        `);
+
+        L.polygon(jiangnanCoordinates, {
+            color: '#27ae60',
+            fillColor: '#2ecc71',
+            fillOpacity: 0.4,
+            weight: 2,
+            opacity: 0.8
+        }).addTo(regionLayer).bindPopup(`
+            <div>
+                <h4>江南 (Jiangnan)</h4>
+                <p>长江中下游以南的广阔区域</p>
+                <p>三国时期开始发展，唐宋后成为中国主要经济文化中心</p>
+            </div>
+        `);
+
+        // Draw Yangtze River
+        L.polyline(yangtzeRiverPath, {
+            color: '#f39c12',
+            weight: 8,
+            opacity: 0.7,
+            dashArray: '10, 8'
+        }).addTo(regionLayer).bindPopup(`
+            <div>
+                <h4>长江水道</h4>
+                <p>中国第一大河，三国时期魏吴对峙的天然分界线</p>
+            </div>
+        `);
+
+        // Add important cities
+        const cities = [
+            { name: '建业', location: [32.0603, 118.7969], desc: '孙吴都城' },
+            { name: '南昌', location: [28.6825, 115.8581], desc: '豫章郡治所' },
+            { name: '苏州', location: [31.2989, 120.5853], desc: '吴郡治所' },
+            { name: '绍兴', location: [30.0303, 120.5657], desc: '会稽郡治所' },
+            { name: '九江', location: [29.7031, 116.0186], desc: '长江重要渡口' }
+        ];
+
+        cities.forEach(city => {
+            L.marker(city.location).addTo(regionLayer).bindPopup(`
+                <div>
+                    <h4>${city.name}</h4>
+                    <p>${city.desc}</p>
+                </div>
+            `);
+        });
+
+        // Timeline data
+        const timelineData = {
+            "title": {
+                "media": {
+                    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Three_Kingdoms_262_ad.png",
+                    "caption": "三国时期（220-280年）地图",
+                    "credit": "Wikimedia Commons"
+                },
+                "text": {
+                    "headline": "三国时期长江流域历史",
+                    "text": "<p>三国时期（220-280年）是中国历史上一个重要的分裂时期，魏、蜀、吴三国鼎立。长江流域是三国争夺的重要区域，特别是江东、江西、江南地区，成为孙吴政权的核心地带。</p>"
+                }
+            },
+            "events": [
+                {
+                    "media": {
+                        "url": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Three_Kingdoms_262_ad.png",
+                        "caption": "262年三国形势图",
+                        "credit": "Wikimedia Commons"
+                    },
+                    "start_date": {
+                        "year": 184
+                    },
+                    "text": {
+                        "headline": "黄巾起义",
+                        "text": "<p>黄巾起义爆发，东汉王朝开始衰落，为三国分裂局面的形成奠定了基础。长江流域各地开始出现军阀割据。</p>"
+                    }
+                },
+                {
+                    "media": {
+                        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Battle_of_Red_Clouds.jpg/800px-Battle_of_Red_Clouds.jpg",
+                        "caption": "赤壁之战想象图",
+                        "credit": "Wikimedia Commons"
+                    },
+                    "start_date": {
+                        "year": 208
+                    },
+                    "text": {
+                        "headline": "赤壁之战",
+                        "text": "<p>孙权与刘备联军在赤壁击败曹操，奠定了三国鼎立的基础。此战发生在长江赤壁段，凸显了长江水道的军事重要性。</p>"
+                    }
+                },
+                {
+                    "media": {
+                        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Three_Kingdoms_262_ad.png/800px-Three_Kingdoms_262_ad.png",
+                        "caption": "三国鼎立形势",
+                        "credit": "Wikimedia Commons"
+                    },
+                    "start_date": {
+                        "year": 220
+                    },
+                    "text": {
+                        "headline": "三国鼎立正式形成",
+                        "text": "<p>曹丕废汉献帝建立魏国，刘备、孙权随后称帝，正式形成魏、蜀、吴三国鼎立局面。江东地区成为孙吴政权的核心区域。</p>"
+                    }
+                },
+                {
+                    "media": {
+                        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Sun_Quan.jpg/400px-Sun_Quan.jpg",
+                        "caption": "孙权画像",
+                        "credit": "Wikimedia Commons"
+                    },
+                    "start_date": {
+                        "year": 229
+                    },
+                    "text": {
+                        "headline": "孙权称帝建吴国",
+                        "text": "<p>孙权在建业（今南京）称帝，建立吴国，定都建业。江东地区正式成为吴国的政治、经济中心。</p>"
+                    }
+                },
+                {
+                    "media": {
+                        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Three_Kingdoms_280ad.png/800px-Three_Kingdoms_280ad.png",
+                        "caption": "280年西晋统一前形势",
+                        "credit": "Wikimedia Commons"
+                    },
+                    "start_date": {
+                        "year": 280
+                    },
+                    "text": {
+                        "headline": "西晋灭吴，三国统一",
+                        "text": "<p>西晋灭吴，三国时期结束。江东、江西、江南地区重新统一，但这些区域在三国时期的发展为其后世的经济文化繁荣奠定了基础。</p>"
+                    }
+                }
+            ]
+        };
+
+        // Initialize TimelineJS
+        const timeline = new TL.Timeline('timeline-embed', timelineData, {
+            width: '100%',
+            height: 600,
+            font: 'default',
+            lang: 'zh-cn',
+            map_type: 'osm'
+        });
+    </script>
+</body>
+</html>
