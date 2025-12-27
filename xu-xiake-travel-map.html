@@ -106,6 +106,61 @@
         .legend-color.route {
             background-color: #3498db;
         }
+        
+        /* 时间轴样式 */
+        .timeline-section {
+            margin-top: 30px;
+        }
+        
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 0;
+            border-top: 2px solid #3498db;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .timeline-item {
+            flex: 0 0 auto;
+            width: 200px;
+            margin: 0 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .timeline-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .timeline-year {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        .timeline-location {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-description {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -121,6 +176,14 @@
                 <button onclick="centerMap()">居中地图</button>
                 <button onclick="toggleRoute()">显示/隐藏路线</button>
                 <button onclick="toggleMarkers()">显示/隐藏标记</button>
+            </div>
+            
+            <!-- 时间轴 -->
+            <div class="timeline-section">
+                <h3>徐霞客游历时间轴</h3>
+                <div class="timeline" id="timeline">
+                    <!-- 时间轴内容将通过JavaScript动态生成 -->
+                </div>
             </div>
             <div class="legend">
                 <h3>图例</h3>
@@ -156,27 +219,112 @@
         let markersVisible = true;
         
         // 徐霞客主要游历地点（按时间顺序）
-        const travelLocations = [
-            { name: '江阴', lat: 31.9167, lng: 120.2667, year: '1587', description: '徐霞客出生地' },
-            { name: '南京', lat: 32.0603, lng: 118.7969, year: '1607', description: '首次出游目的地' },
-            { name: '杭州', lat: 30.2741, lng: 120.1551, year: '1607', description: '游览西湖等名胜' },
-            { name: '黄山', lat: 30.1364, lng: 118.1771, year: '1616', description: '首次攀登黄山' },
-            { name: '武夷山', lat: 27.6881, lng: 118.0296, year: '1616', description: '游览武夷山' },
-            { name: '庐山', lat: 29.6054, lng: 115.9983, year: '1618', description: '游览庐山' },
-            { name: '嵩山', lat: 34.4654, lng: 113.0420, year: '1623', description: '游览嵩山少林寺' },
-            { name: '华山', lat: 34.4997, lng: 110.0970, year: '1623', description: '攀登华山' },
-            { name: '恒山', lat: 39.7186, lng: 113.4668, year: '1623', description: '游览恒山' },
-            { name: '五台山', lat: 38.9975, lng: 113.5986, year: '1623', description: '游览五台山' },
-            { name: '雁荡山', lat: 28.3104, lng: 121.0820, year: '1624', description: '游览雁荡山' },
-            { name: '普陀山', lat: 29.9847, lng: 122.3093, year: '1624', description: '游览普陀山' },
-            { name: '衡山', lat: 27.2149, lng: 112.6363, year: '1636', description: '游览衡山' },
-            { name: '桂林', lat: 25.2867, lng: 110.2996, year: '1637', description: '游览桂林山水' },
-            { name: '贵阳', lat: 26.5783, lng: 106.7078, year: '1638', description: '途径贵阳' },
-            { name: '昆明', lat: 24.8801, lng: 102.8329, year: '1638', description: '游览昆明' },
-            { name: '大理', lat: 25.6866, lng: 100.1863, year: '1639', description: '游览大理' },
-            { name: '丽江', lat: 26.8679, lng: 100.2331, year: '1639', description: '游览丽江' },
-            { name: '腾冲', lat: 24.9186, lng: 98.4544, year: '1639', description: '游历终点' }
+        let travelLocations = [
+            { name: '江阴', lat: 31.9167, lng: 120.2667, year: '1587', description: '徐霞客出生地', image: '' },
+            { name: '南京', lat: 32.0603, lng: 118.7969, year: '1607', description: '首次出游目的地', image: '' },
+            { name: '杭州', lat: 30.2741, lng: 120.1551, year: '1607', description: '游览西湖等名胜', image: '' },
+            { name: '黄山', lat: 30.1364, lng: 118.1771, year: '1616', description: '首次攀登黄山', image: '' },
+            { name: '武夷山', lat: 27.6881, lng: 118.0296, year: '1616', description: '游览武夷山', image: '' },
+            { name: '庐山', lat: 29.6054, lng: 115.9983, year: '1618', description: '游览庐山', image: '' },
+            { name: '嵩山', lat: 34.4654, lng: 113.0420, year: '1623', description: '游览嵩山少林寺', image: '' },
+            { name: '华山', lat: 34.4997, lng: 110.0970, year: '1623', description: '攀登华山', image: '' },
+            { name: '恒山', lat: 39.7186, lng: 113.4668, year: '1623', description: '游览恒山', image: '' },
+            { name: '五台山', lat: 38.9975, lng: 113.5986, year: '1623', description: '游览五台山', image: '' },
+            { name: '雁荡山', lat: 28.3104, lng: 121.0820, year: '1624', description: '游览雁荡山', image: '' },
+            { name: '普陀山', lat: 29.9847, lng: 122.3093, year: '1624', description: '游览普陀山', image: '' },
+            { name: '衡山', lat: 27.2149, lng: 112.6363, year: '1636', description: '游览衡山', image: '' },
+            { name: '桂林', lat: 25.2867, lng: 110.2996, year: '1637', description: '游览桂林山水', image: '' },
+            { name: '贵阳', lat: 26.5783, lng: 106.7078, year: '1638', description: '途径贵阳', image: '' },
+            { name: '昆明', lat: 24.8801, lng: 102.8329, year: '1638', description: '游览昆明', image: '' },
+            { name: '大理', lat: 25.6866, lng: 100.1863, year: '1639', description: '游览大理', image: '' },
+            { name: '丽江', lat: 26.8679, lng: 100.2331, year: '1639', description: '游览丽江', image: '' },
+            { name: '腾冲', lat: 24.9186, lng: 98.4544, year: '1639', description: '游历终点', image: '' }
         ];
+        
+        // 从缓存获取图片
+        function getImageFromCache(locationName) {
+            const cacheKey = `xiake_image_${locationName}`;
+            const cacheData = localStorage.getItem(cacheKey);
+            
+            if (cacheData) {
+                const { imageUrl, timestamp } = JSON.parse(cacheData);
+                // 检查缓存是否过期（7天）
+                const now = Date.now();
+                const sevenDays = 7 * 24 * 60 * 60 * 1000;
+                
+                if (now - timestamp < sevenDays) {
+                    return imageUrl;
+                }
+            }
+            
+            return null;
+        }
+        
+        // 将图片存入缓存
+        function saveImageToCache(locationName, imageUrl) {
+            const cacheKey = `xiake_image_${locationName}`;
+            const cacheData = {
+                imageUrl: imageUrl,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        }
+        
+        // 从维基百科获取地点图片
+        async function getWikipediaImage(locationName) {
+            // 先检查缓存
+            const cachedImage = getImageFromCache(locationName);
+            if (cachedImage) {
+                return cachedImage;
+            }
+            
+            try {
+                // 首先获取地点的维基百科页面ID
+                const searchUrl = `https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(locationName)}&format=json&origin=*`;
+                const searchResponse = await fetch(searchUrl);
+                const searchData = await searchResponse.json();
+                
+                if (searchData.query.search.length === 0) {
+                    const fallbackImage = `https://picsum.photos/seed/${locationName}/400/300`;
+                    saveImageToCache(locationName, fallbackImage);
+                    return fallbackImage;
+                }
+                
+                const pageId = searchData.query.search[0].pageid;
+                
+                // 然后获取页面的图片信息
+                const imageUrl = `https://zh.wikipedia.org/w/api.php?action=query&prop=pageimages&pageids=${pageId}&format=json&pithumbsize=400&origin=*`;
+                const imageResponse = await fetch(imageUrl);
+                const imageData = await imageResponse.json();
+                
+                let finalImageUrl;
+                if (imageData.query.pages[pageId].thumbnail) {
+                    finalImageUrl = imageData.query.pages[pageId].thumbnail.source;
+                } else {
+                    finalImageUrl = `https://picsum.photos/seed/${locationName}/400/300`;
+                }
+                
+                // 存入缓存
+                saveImageToCache(locationName, finalImageUrl);
+                
+                return finalImageUrl;
+            } catch (error) {
+                console.log(`获取${locationName}图片失败:`, error);
+                const fallbackImage = `https://picsum.photos/seed/${locationName}/400/300`;
+                saveImageToCache(locationName, fallbackImage);
+                return fallbackImage;
+            }
+        }
+        
+        // 获取所有地点的真实图片
+        async function fetchAllImages() {
+            for (let i = 0; i < travelLocations.length; i++) {
+                const location = travelLocations[i];
+                const imageUrl = await getWikipediaImage(location.name);
+                travelLocations[i].image = imageUrl || `https://picsum.photos/seed/${location.name}/400/300`;
+            }
+        }
         
         // 初始化交互式地图
         function initMap() {
@@ -245,7 +393,7 @@
                 
                 // 添加标记
                 L.marker([location.lat, location.lng], { icon: markerIcon })
-                    .bindPopup(`<b>${location.name}</b><br>年份：${location.year}<br>描述：${location.description}`)
+                    .bindPopup(`<b>${location.name}</b><br>年份：${location.year}<br><img src="${location.image}" alt="${location.name}" style="max-width: 100%; height: auto; margin: 10px 0;"><br>描述：${location.description}`)
                     .addTo(markersLayer);
             });
         }
@@ -283,9 +431,40 @@
             }
         }
         
-        // 页面加载完成后初始化地图
-        window.onload = function() {
+        // 生成时间轴
+        function generateTimeline() {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            travelLocations.forEach((location, index) => {
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'timeline-item';
+                timelineItem.innerHTML = `
+                    <div class="timeline-year">${location.year}</div>
+                    <div class="timeline-location">${location.name}</div>
+                    <img src="${location.image}" alt="${location.name}" class="timeline-image">
+                    <div class="timeline-description">${location.description}</div>
+                `;
+                
+                // 添加点击事件，点击时间轴项时跳转到对应位置
+                timelineItem.addEventListener('click', () => {
+                    map.setView([location.lat, location.lng], 8);
+                    // 打开对应的弹窗
+                    const markers = markersLayer.getLayers();
+                    if (markers[index]) {
+                        markers[index].openPopup();
+                    }
+                });
+                
+                timeline.appendChild(timelineItem);
+            });
+        }
+        
+        // 页面加载完成后先获取图片，然后初始化地图和时间轴
+        window.onload = async function() {
+            await fetchAllImages();
             initMap();
+            generateTimeline();
         };
     </script>
 </body>
