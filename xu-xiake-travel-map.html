@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>徐霞客游记路线图</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .map-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        h2 {
+            color: #e74c3c;
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        #interactive-map {
+            height: 600px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        .map-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .map-info h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .map-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .map-info li {
+            margin-bottom: 5px;
+        }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        .legend-color.start {
+            background-color: #27ae60;
+        }
+        .legend-color.end {
+            background-color: #e74c3c;
+        }
+        .legend-color.route {
+            background-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>徐霞客游记路线图</h1>
+        
+        <div class="map-section">
+            <h2>交互式路线图</h2>
+            <div id="interactive-map"></div>
+            <div class="controls">
+                <button onclick="zoomIn()">放大</button>
+                <button onclick="zoomOut()">缩小</button>
+                <button onclick="centerMap()">居中地图</button>
+                <button onclick="toggleRoute()">显示/隐藏路线</button>
+                <button onclick="toggleMarkers()">显示/隐藏标记</button>
+            </div>
+            <div class="legend">
+                <h3>图例</h3>
+                <div class="legend-item">
+                    <div class="legend-color start"></div>
+                    <span>起点：江阴</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color end"></div>
+                    <span>终点：云南腾冲</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color route"></div>
+                    <span>游历路线</span>
+                </div>
+            </div>
+            <div class="map-info">
+                <h3>徐霞客简介</h3>
+                <p>徐霞客（1587-1641），名弘祖，字振之，号霞客，明朝南直隶江阴（今江苏江阴市）人。他是中国历史上著名的地理学家、旅行家和文学家，著有《徐霞客游记》。</p>
+                <h3>游记路线说明</h3>
+                <p>徐霞客从1607年开始游历，历时34年，足迹遍及当时中国的16个省。本地图展示了他游历的主要路线和重要地点。</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 交互式地图功能
+        let map;
+        let routeLayer;
+        let markersLayer;
+        let routeVisible = true;
+        let markersVisible = true;
+        
+        // 徐霞客主要游历地点（按时间顺序）
+        const travelLocations = [
+            { name: '江阴', lat: 31.9167, lng: 120.2667, year: '1587', description: '徐霞客出生地' },
+            { name: '南京', lat: 32.0603, lng: 118.7969, year: '1607', description: '首次出游目的地' },
+            { name: '杭州', lat: 30.2741, lng: 120.1551, year: '1607', description: '游览西湖等名胜' },
+            { name: '黄山', lat: 30.1364, lng: 118.1771, year: '1616', description: '首次攀登黄山' },
+            { name: '武夷山', lat: 27.6881, lng: 118.0296, year: '1616', description: '游览武夷山' },
+            { name: '庐山', lat: 29.6054, lng: 115.9983, year: '1618', description: '游览庐山' },
+            { name: '嵩山', lat: 34.4654, lng: 113.0420, year: '1623', description: '游览嵩山少林寺' },
+            { name: '华山', lat: 34.4997, lng: 110.0970, year: '1623', description: '攀登华山' },
+            { name: '恒山', lat: 39.7186, lng: 113.4668, year: '1623', description: '游览恒山' },
+            { name: '五台山', lat: 38.9975, lng: 113.5986, year: '1623', description: '游览五台山' },
+            { name: '雁荡山', lat: 28.3104, lng: 121.0820, year: '1624', description: '游览雁荡山' },
+            { name: '普陀山', lat: 29.9847, lng: 122.3093, year: '1624', description: '游览普陀山' },
+            { name: '衡山', lat: 27.2149, lng: 112.6363, year: '1636', description: '游览衡山' },
+            { name: '桂林', lat: 25.2867, lng: 110.2996, year: '1637', description: '游览桂林山水' },
+            { name: '贵阳', lat: 26.5783, lng: 106.7078, year: '1638', description: '途径贵阳' },
+            { name: '昆明', lat: 24.8801, lng: 102.8329, year: '1638', description: '游览昆明' },
+            { name: '大理', lat: 25.6866, lng: 100.1863, year: '1639', description: '游览大理' },
+            { name: '丽江', lat: 26.8679, lng: 100.2331, year: '1639', description: '游览丽江' },
+            { name: '腾冲', lat: 24.9186, lng: 98.4544, year: '1639', description: '游历终点' }
+        ];
+        
+        // 初始化交互式地图
+        function initMap() {
+            map = L.map('interactive-map').setView([30.0, 110.0], 5);
+            
+            // 添加地图图层
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // 创建图层组
+            routeLayer = L.layerGroup().addTo(map);
+            markersLayer = L.layerGroup().addTo(map);
+            
+            // 添加路线
+            addRoute();
+            
+            // 添加标记
+            addMarkers();
+        }
+        
+        // 添加路线
+        function addRoute() {
+            // 提取坐标点
+            const coordinates = travelLocations.map(location => [location.lat, location.lng]);
+            
+            // 创建路线
+            L.polyline(coordinates, {
+                color: '#3498db',
+                weight: 3,
+                opacity: 0.8,
+                lineJoin: 'round'
+            }).addTo(routeLayer);
+        }
+        
+        // 添加标记
+        function addMarkers() {
+            travelLocations.forEach((location, index) => {
+                // 为起点和终点设置不同的图标
+                let markerIcon;
+                if (index === 0) {
+                    // 起点：绿色
+                    markerIcon = L.divIcon({
+                        className: 'custom-marker start',
+                        html: `<div style="background-color: #27ae60; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">起</div>`,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+                } else if (index === travelLocations.length - 1) {
+                    // 终点：红色
+                    markerIcon = L.divIcon({
+                        className: 'custom-marker end',
+                        html: `<div style="background-color: #e74c3c; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">终</div>`,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+                } else {
+                    // 普通地点：蓝色
+                    markerIcon = L.divIcon({
+                        className: 'custom-marker',
+                        html: `<div style="background-color: #3498db; color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">${index + 1}</div>`,
+                        iconSize: [25, 25],
+                        iconAnchor: [12.5, 12.5]
+                    });
+                }
+                
+                // 添加标记
+                L.marker([location.lat, location.lng], { icon: markerIcon })
+                    .bindPopup(`<b>${location.name}</b><br>年份：${location.year}<br>描述：${location.description}`)
+                    .addTo(markersLayer);
+            });
+        }
+        
+        // 地图控制功能
+        function zoomIn() {
+            map.zoomIn();
+        }
+        
+        function zoomOut() {
+            map.zoomOut();
+        }
+        
+        function centerMap() {
+            map.setView([30.0, 110.0], 5);
+        }
+        
+        function toggleRoute() {
+            if (routeVisible) {
+                map.removeLayer(routeLayer);
+                routeVisible = false;
+            } else {
+                routeLayer.addTo(map);
+                routeVisible = true;
+            }
+        }
+        
+        function toggleMarkers() {
+            if (markersVisible) {
+                map.removeLayer(markersLayer);
+                markersVisible = false;
+            } else {
+                markersLayer.addTo(map);
+                markersVisible = true;
+            }
+        }
+        
+        // 页面加载完成后初始化地图
+        window.onload = function() {
+            initMap();
+        };
+    </script>
+</body>
+</html>
